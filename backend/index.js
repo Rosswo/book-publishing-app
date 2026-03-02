@@ -44,13 +44,21 @@ app.use(express.static(path.join(__dirname, "..", "frontend")));
 app.use("/uploads", uploadsStatic);
 
 /* ==============================
-   Routes
+   API Routes
 ============================== */
 
 app.use(authRoutes);
 app.use(bookRoutes);
 app.use(uploadRoutes);
 app.use(settingsRoutes);
+
+/* ==============================
+   Production Root Fallback
+============================== */
+
+app.get("/", (req, res) => {
+    res.sendFile(path.join(__dirname, "..", "frontend", "index.html"));
+});
 
 /* ==============================
    Start Server

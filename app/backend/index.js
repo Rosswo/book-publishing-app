@@ -14,10 +14,11 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 /* ==============================
-   Paths (Production Safe)
+   Paths
 ============================== */
 
-const FRONTEND_PATH = path.join(process.cwd(), "frontend");
+// app/backend → go up one level → app/frontend
+const FRONTEND_PATH = path.join(__dirname, "..", "frontend");
 
 /* ==============================
    Middleware
@@ -59,7 +60,7 @@ app.use(uploadRoutes);
 app.use(settingsRoutes);
 
 /* ==============================
-   Root Fallback
+   Root Route
 ============================== */
 
 app.get("/", (req, res) => {

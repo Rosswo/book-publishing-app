@@ -2,48 +2,100 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 28px 40px;
+    padding: 34px 28px 20px 28px;
+}
+
+.library-title {
+    font-size: 26px;
+    font-weight: 600;
+    letter-spacing: -0.5px;
+}
+
+.topbar-actions {
+    display: flex;
+    align-items: center;
 }
 
 /* =========================
-   LIBRARY GRID
+   LIBRARY WRAPPER
 ========================= */
 
 .library {
-    max-width: 1100px;
+    max-width: 1200px;
     margin: auto;
-    padding: 30px;
-    padding-bottom: 140px;
+    padding: 10px 24px 160px 24px;
 }
+
+/* =========================
+   GRID SYSTEM (CONTROLLED)
+========================= */
 
 .grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-    gap: 36px;
+    gap: 28px;
 }
+
+/* Ultra Wide Desktop */
+@media (min-width: 1500px) {
+    .grid {
+        grid-template-columns: repeat(5, 1fr);
+    }
+}
+
+/* Standard Desktop */
+@media (min-width: 1100px) and (max-width: 1499px) {
+    .grid {
+        grid-template-columns: repeat(4, 1fr);
+    }
+}
+
+/* Smaller Desktop / Vertical Monitor */
+@media (min-width: 850px) and (max-width: 1099px) {
+    .grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+/* Tablet */
+@media (min-width: 600px) and (max-width: 849px) {
+    .grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+/* Mobile */
+@media (max-width: 599px) {
+    .grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+/* =========================
+   BOOK CARD
+========================= */
 
 .book {
     background: var(--card);
-    padding: 20px;
-    border-radius: 26px;
+    padding: 16px;
+    border-radius: 22px;
     backdrop-filter: blur(20px);
     border: 1px solid var(--border-soft);
-    box-shadow: 0 25px 70px rgba(0,0,0,0.55), 0 0 60px rgba(99,102,241,0.10);
-    transition: 0.3s ease;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+    transition: 0.25s ease;
     cursor: pointer;
 }
 
     .book:hover {
-        transform: translateY(-10px);
-        box-shadow: 0 45px 110px rgba(0,0,0,0.75), 0 0 80px rgba(99,102,241,0.20);
+        transform: translateY(-6px);
     }
 
+    /* TRUE PORTRAIT BOOK RATIO */
     .book img {
         width: 100%;
-        height: 260px;
+        aspect-ratio: 3 / 4;
         object-fit: cover;
-        border-radius: 22px;
-        margin-bottom: 14px;
+        border-radius: 18px;
+        margin-bottom: 12px;
     }
 
 /* =========================
@@ -52,48 +104,44 @@
 
 .library-taskbar {
     position: fixed;
-    bottom: 25px;
+    bottom: 20px;
     left: 50%;
     transform: translateX(-50%);
-    width: 90%;
-    max-width: 800px;
-    height: 60px;
+    width: 92%;
+    max-width: 720px;
+    height: 54px;
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    padding: 0 24px;
+    padding: 0 18px;
     background: var(--card);
     backdrop-filter: blur(20px);
     border: 1px solid var(--border-soft);
     border-radius: 30px;
-    box-shadow: 0 25px 80px rgba(0,0,0,0.6);
+    box-shadow: 0 25px 70px rgba(0,0,0,0.55);
     z-index: 50;
 }
 
+    /* Push Options to far right */
+    .library-taskbar button:last-of-type {
+        margin-left: auto;
+    }
+
 .taskbar-btn {
-    background: transparent;
+    background: rgba(255,255,255,0.06);
     border: 1px solid var(--border-soft);
     color: var(--text);
-    padding: 8px 16px;
+    font-size: 13px;
+    padding: 6px 18px;
     border-radius: 999px;
     cursor: pointer;
-    transition: 0.25s ease;
+    transition: all 0.2s ease;
 }
 
     .taskbar-btn:hover {
-        background: rgba(255,255,255,0.05);
+        background: var(--primary);
+        color: white;
         border-color: var(--primary);
     }
-
-.taskbar-center {
-    font-weight: 500;
-    opacity: 0.85;
-    max-width: 50%;
-    text-align: center;
-    overflow: hidden;
-    white-space: nowrap;
-    text-overflow: ellipsis;
-}
 
 /* =========================
    HISTORY DROPDOWN
@@ -102,8 +150,8 @@
 .history-dropdown {
     position: absolute;
     bottom: 70px;
-    left: 20px;
-    width: 280px;
+    left: 18px;
+    width: 260px;
     background: var(--card);
     backdrop-filter: blur(20px);
     border: 1px solid var(--border-soft);
@@ -112,8 +160,8 @@
     box-shadow: 0 25px 70px rgba(0,0,0,0.7);
     display: none;
     opacity: 0;
-    transform: translateY(15px);
-    transition: all 0.25s ease;
+    transform: translateY(10px);
+    transition: all 0.2s ease;
 }
 
     .history-dropdown.active {
@@ -122,23 +170,29 @@
         transform: translateY(0);
     }
 
-.history-title {
-    font-size: 14px;
-    font-weight: 600;
-    margin-bottom: 12px;
-    opacity: 0.7;
+/* =========================
+   OPTIONS DROPDOWN
+========================= */
+
+.options-dropdown {
+    position: absolute;
+    bottom: 70px;
+    right: 18px;
+    width: 240px;
+    background: var(--card);
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--border-soft);
+    border-radius: 20px;
+    padding: 14px;
+    box-shadow: 0 25px 70px rgba(0,0,0,0.7);
+    display: none;
+    opacity: 0;
+    transform: translateY(10px);
+    transition: all 0.2s ease;
 }
 
-.history-item {
-    padding: 12px 14px;
-    margin-bottom: 6px;
-    border-radius: 12px;
-    cursor: pointer;
-    transition: 0.2s ease;
-    background: rgba(255,255,255,0.03);
-}
-
-    .history-item:hover {
-        background: rgba(255,255,255,0.08);
-        color: var(--primary);
+    .options-dropdown.active {
+        display: block;
+        opacity: 1;
+        transform: translateY(0);
     }

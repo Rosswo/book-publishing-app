@@ -2,6 +2,16 @@
 const session = require("express-session");
 const path = require("path");
 
+/* ==============================
+   FORCE DATABASE INIT AT BOOT
+============================== */
+
+require("./database/db");
+
+/* ==============================
+   Route Imports
+============================== */
+
 const authRoutes = require("./routes/auth");
 const bookRoutes = require("./routes/books");
 const uploadRoutes = require("./routes/upload");
@@ -11,13 +21,22 @@ const requireAdmin = require("./middleware/requireAdmin");
 const { uploadsStatic } = require("./config/paths");
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+
+/* ==============================
+   Railway PORT (STRICT)
+============================== */
+
+const PORT = process.env.PORT;
+
+if (!PORT) {
+    console.error("❌ PORT environment variable not set.");
+    process.exit(1);
+}
 
 /* ==============================
    Paths
 ============================== */
 
-// frontend is inside backend now
 const FRONTEND_PATH = path.join(__dirname, "frontend");
 
 /* ==============================
@@ -60,7 +79,7 @@ app.use(uploadRoutes);
 app.use(settingsRoutes);
 
 /* ==============================
-   Root Route (Explicit Fallback)
+   Root Route
 ============================== */
 
 app.get("/", (req, res) => {
@@ -68,9 +87,9 @@ app.get("/", (req, res) => {
 });
 
 /* ==============================
-   Start Server (Railway-safe)
+   Start Server (Railway Safe)
 ============================== */
 
-app.listen(PORT, "0.0.0.0", () => {
-    console.log(`Server running on port ${PORT}`);
+app.listen(PORT, () => {
+    console.log(`✅ Server running on port ${PORT}`);
 });

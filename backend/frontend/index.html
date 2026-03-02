@@ -15,23 +15,28 @@
 
 <body>
 
+    <!-- ================= TOPBAR ================= -->
+
     <div class="topbar" id="libraryTopbar">
-        <h2>Book Library</h2>
-        <div>
-            <button class="accent-btn" onclick="toggleTheme()">Theme</button>
-            <a href="/admin.html" style="margin-left:14px;color:var(--text);text-decoration:none;">Admin</a>
+        <h2 class="library-title">Book Library</h2>
+        <div class="topbar-actions">
+            <button class="accent-btn small" onclick="toggleTheme()">Theme</button>
         </div>
     </div>
+
+    <!-- ================= LIBRARY VIEW ================= -->
 
     <div class="library" id="libraryView">
         <div class="grid" id="booksContainer"></div>
     </div>
 
+    <!-- ================= READER VIEW ================= -->
+
     <div class="reader" id="readerView">
         <div class="reader-header" id="readerHeader">
             <button class="glass-btn" onclick="closeReader()">← Back</button>
             <div class="reader-title" id="readerTitle"></div>
-            <button class="accent-btn" onclick="toggleTheme()">Theme</button>
+            <button class="accent-btn small" onclick="toggleTheme()">Theme</button>
         </div>
 
         <div class="reading-progress">
@@ -47,31 +52,38 @@
         </div>
     </div>
 
+    <!-- ================= SECTION PANEL ================= -->
+
     <div class="section-panel" id="sectionPanel"></div>
+
+    <!-- ================= IMAGE MODAL ================= -->
 
     <div class="image-modal" id="imageModal" onclick="closeImageModal()">
         <img id="modalImage" />
     </div>
 
+    <!-- ================= BACK TO TOP ================= -->
+
     <button class="back-to-top" id="backToTopBtn" onclick="scrollToTop()">↑</button>
 
     <!-- ================= TASKBAR ================= -->
+
     <div class="library-taskbar" id="libraryTaskbar">
 
-        <button class="taskbar-btn" onclick="toggleHistory()">History</button>
+        <!-- Left -->
+        <button id="historyBtn" class="taskbar-btn" onclick="toggleHistory()">History</button>
 
-        <div class="taskbar-center">
-            <span id="taskbarCurrentTitle">No Active Book</span>
-        </div>
+        <!-- Right -->
+        <button id="optionsBtn" class="taskbar-btn" onclick="toggleOptions()">Options</button>
 
-        <button class="taskbar-btn" onclick="toggleOptions()">Options</button>
-
+        <!-- History Dropdown -->
         <div class="history-dropdown" id="historyDropdown">
-            <div class="history-title">Recently Read</div>
             <div id="historyList"></div>
         </div>
 
+        <!-- Options Dropdown -->
         <div class="options-dropdown" id="optionsDropdown">
+            <div class="options-item" onclick="window.location.href='/admin.html'">Admin Panel</div>
             <div class="options-item" onclick="openAppVersion()">App Version</div>
             <div class="options-item" onclick="openCredits()">Credits To</div>
             <div class="options-item" onclick="openMemorial()">Memorial</div>
@@ -81,6 +93,7 @@
     </div>
 
     <!-- ================= MODAL ================= -->
+
     <div class="app-modal" id="appModal">
         <div class="app-modal-content">
             <div class="app-modal-header">
@@ -91,7 +104,7 @@
         </div>
     </div>
 
-    <!-- ================= SCRIPTS (ORDER MATTERS) ================= -->
+    <!-- ================= SCRIPTS ================= -->
 
     <script src="js/history.js"></script>
     <script src="js/settings.js"></script>

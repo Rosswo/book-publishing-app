@@ -4,6 +4,13 @@ const path = require("path");
 const sharp = require("sharp");
 const { htmlDir, imagesDir } = require("../config/paths");
 
+/* =========================
+   Reduce Sharp Memory Usage
+========================= */
+
+sharp.cache(false);
+sharp.concurrency(1);
+
 async function convertDocxToSections(docxPath, folderName) {
 
     const savedImages = [];
@@ -30,11 +37,11 @@ async function convertDocxToSections(docxPath, folderName) {
 
                 await sharp(imageBuffer)
                     .resize({
-                        width: 1200,
+                        width: 1000, // lowered from 1200
                         withoutEnlargement: true
                     })
                     .jpeg({
-                        quality: 65,
+                        quality: 60, // lowered from 65
                         mozjpeg: true
                     })
                     .toFile(imagePath);

@@ -1,20 +1,26 @@
 const Database = require("better-sqlite3");
 const fs = require("fs");
 
+const DATA_PATH = "/data";
+const DB_PATH = "/data/books.db";
+
 /* =========================
-   Ensure /data Exists
+   Verify Volume Mount
 ========================= */
 
-if (!fs.existsSync("/data")) {
-    fs.mkdirSync("/data", { recursive: true });
+console.log("Checking DATA PATH:", DATA_PATH);
+console.log("DATA exists?", fs.existsSync(DATA_PATH));
+
+if (!fs.existsSync(DATA_PATH)) {
+    console.log("Creating DATA directory...");
+    fs.mkdirSync(DATA_PATH, { recursive: true });
 }
 
-/* =========================
-   Persistent DB Path
-========================= */
+console.log("Opening DB at:", DB_PATH);
 
-const dbPath = "/data/books.db";
-const db = new Database(dbPath);
+const db = new Database(DB_PATH);
+
+console.log("DB opened successfully.");
 
 /* =========================
    BOOKS TABLE
@@ -37,8 +43,7 @@ db.prepare(`
     )
 `).run();
 
-/* Ensure images_json exists */
-
+/* Ensure images_json column exists */
 const bookColumns = db.prepare("PRAGMA table_info(books)").all();
 const bookNames = bookColumns.map(c => c.name);
 
@@ -50,15 +55,8 @@ if (!bookNames.includes("images_json")) {
    SETTINGS TABLE
 ========================= */
 
-/*
-We drop old simple settings table (if exists)
-Safe because no production data yet.
-*/
-
-db.prepare(`DROP TABLE IF EXISTS settings`).run();
-
 db.prepare(`
-    CREATE TABLE settings (
+    CREATE TABLE IF NOT EXISTS settings (
         key TEXT PRIMARY KEY,
         content_type TEXT DEFAULT 'html',
         content_path TEXT,
@@ -66,7 +64,7 @@ db.prepare(`
     )
 `).run();
 
-/* Default entries */
+/* Ensure default keys exist */
 
 const defaultSettings = ["credits", "memorial"];
 
@@ -79,5 +77,12 @@ defaultSettings.forEach(key => {
         `).run(key);
     }
 });
+
+/* =========================
+   Debug Count
+========================= */
+
+const count = db.prepare("SELECT COUNT(*) as c FROM books").get().c;
+console.log("Current book count:", count);
 
 module.exports = db;

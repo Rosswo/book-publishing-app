@@ -23,9 +23,13 @@ const storage = multer.diskStorage({
     },
 });
 
+/* =========================
+   Reduced File Size Limit
+========================= */
+
 const upload = multer({
     storage,
-    limits: { fileSize: 300 * 1024 * 1024 }, // 300MB limit
+    limits: { fileSize: 120 * 1024 * 1024 }, // 120MB safer for Railway free
 });
 
 /* =========================
@@ -41,6 +45,10 @@ router.post(
         { name: "cover", maxCount: 1 },
     ]),
     async (req, res) => {
+
+        let docxFile;
+        let pdfFile;
+
         try {
             const { title, description, version } = req.body;
 
@@ -48,8 +56,8 @@ router.post(
                 return res.status(400).json({ error: "Title required." });
             }
 
-            const pdfFile = req.files?.book?.[0];
-            const docxFile = req.files?.docx?.[0];
+            pdfFile = req.files?.book?.[0];
+            docxFile = req.files?.docx?.[0];
             const coverFile = req.files?.cover?.[0];
 
             let contentType = "pdf";
@@ -100,7 +108,7 @@ router.post(
             }
 
             /* =========================
-               Save To Database (Unified Insert)
+               Save To Database
             ========================= */
 
             db.prepare(`
@@ -122,8 +130,15 @@ router.post(
             res.json({ message: "Book uploaded successfully." });
 
         } catch (err) {
+
             console.error("Upload error:", err);
-            res.status(500).json({ error: err.message });
+
+            // Cleanup temp DOCX if exists
+            if (docxFile && docxFile.path && fs.existsSync(docxFile.path)) {
+                fs.unlinkSync(docxFile.path);
+            }
+
+            res.status(500).json({ error: "Upload failed. Check file size or memory limits." });
         }
     }
 );

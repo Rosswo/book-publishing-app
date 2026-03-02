@@ -1,17 +1,44 @@
 // =============================
-// UI.JS — Scroll + Theme + Taskbar
+// UI.JS — Scroll + Theme + Taskbar (UPDATED)
 // =============================
 
-function toggleOptions() {
-    const historyDropdown = document.getElementById("historyDropdown");
-    const optionsDropdown = document.getElementById("optionsDropdown");
+/* =========================
+   DROPDOWN CONTROLS (PRODUCTION SAFE)
+========================= */
 
-    historyDropdown.classList.remove("active");
-    optionsDropdown.classList.toggle("active");
-}
+document.addEventListener("DOMContentLoaded", function () {
+
+    const history = document.getElementById("historyDropdown");
+    const options = document.getElementById("optionsDropdown");
+    const historyBtn = document.getElementById("historyBtn");
+    const optionsBtn = document.getElementById("optionsBtn");
+
+    window.toggleHistory = function () {
+        options.classList.remove("active");
+        history.classList.toggle("active");
+    };
+
+    window.toggleOptions = function () {
+        history.classList.remove("active");
+        options.classList.toggle("active");
+    };
+
+    document.addEventListener("click", function (e) {
+        if (
+            !history.contains(e.target) &&
+            !options.contains(e.target) &&
+            !historyBtn.contains(e.target) &&
+            !optionsBtn.contains(e.target)
+        ) {
+            history.classList.remove("active");
+            options.classList.remove("active");
+        }
+    });
+});
+
 
 /* =========================
-   Scroll Logic
+   SCROLL LOGIC
 ========================= */
 
 document.getElementById("readerContent").addEventListener("scroll", function () {
@@ -55,10 +82,20 @@ document.getElementById("readerContent").addEventListener("scroll", function () 
     saveProgress();
 });
 
+
+/* =========================
+   BACK TO TOP
+========================= */
+
 function scrollToTop() {
     const container = document.getElementById("readerContent");
     container.scrollTo({ top: 0, behavior: "smooth" });
 }
+
+
+/* =========================
+   THEME SYSTEM
+========================= */
 
 function toggleTheme() {
     document.body.classList.toggle("light");
@@ -72,9 +109,3 @@ function toggleTheme() {
     const saved = localStorage.getItem("theme");
     if (saved === "light") document.body.classList.add("light");
 })();
-
-function updateTaskbarTitle(title) {
-    const el = document.getElementById("taskbarCurrentTitle");
-    if (!el) return;
-    el.innerText = title ? title : "No Active Book";
-}

@@ -1,11 +1,10 @@
 // =============================
-// CORE.JS — Reader Engine
+// CORE.JS — Reader Engine (UPDATED)
 // =============================
 
 let currentBook = null;
 let sections = [];
 let currentSectionIndex = 0;
-let lastScroll = 0;
 
 /* =========================
    Resume Logic
@@ -104,7 +103,7 @@ async function openBook(book) {
     }
 
     /* =========================
-       PDF MODE (Framed)
+       PDF MODE
     ========================= */
 
     else if (book.content_type === "pdf") {
@@ -243,19 +242,26 @@ function toggleSections() {
 }
 
 /* =========================
-   Image Modal
+   IMAGE MODAL — FIXED
 ========================= */
 
 function attachImageHandlers() {
     document.querySelectorAll(".book-content img")
         .forEach(img => {
             img.onclick = () => {
-                document.getElementById("modalImage").src = img.src;
-                document.getElementById("imageModal").style.display = "flex";
+                openImageModal(img.src);
             };
         });
 }
 
+function openImageModal(src) {
+    const modal = document.getElementById("imageModal");
+    const modalImg = document.getElementById("modalImage");
+
+    modalImg.src = src;
+    modal.classList.add("active");
+}
+
 function closeImageModal() {
-    document.getElementById("imageModal").style.display = "none";
+    document.getElementById("imageModal").classList.remove("active");
 }

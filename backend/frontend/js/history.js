@@ -1,22 +1,40 @@
 // =============================
-// HISTORY.JS
+// HISTORY.JS — Stable + UI Compatible
 // =============================
 
 const HISTORY_KEY = "book-history";
+const HISTORY_LIMIT = 5;
+
+/* =========================
+   Get History
+========================= */
 
 function getHistory() {
     const data = localStorage.getItem(HISTORY_KEY);
     return data ? JSON.parse(data) : [];
 }
 
+/* =========================
+   Save History
+========================= */
+
 function saveHistory(history) {
     localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
 }
 
+/* =========================
+   Add Book To History
+========================= */
+
 function addToHistory(book) {
+    if (!book) return;
+
     let history = getHistory();
+
+    // Remove duplicate
     history = history.filter(item => item.id !== book.id);
 
+    // Add to front
     history.unshift({
         id: book.id,
         title: book.title,
@@ -28,9 +46,15 @@ function addToHistory(book) {
         lastReadAt: Date.now()
     });
 
-    history = history.slice(0, 5);
+    // Limit history size
+    history = history.slice(0, HISTORY_LIMIT);
+
     saveHistory(history);
 }
+
+/* =========================
+   Remove From History
+========================= */
 
 function removeFromHistory(id) {
     let history = getHistory();
@@ -38,33 +62,27 @@ function removeFromHistory(id) {
     saveHistory(history);
 }
 
-function toggleHistory() {
-    const historyDropdown = document.getElementById("historyDropdown");
-    const optionsDropdown = document.getElementById("optionsDropdown");
-
-    optionsDropdown.classList.remove("active");
-
-    if (historyDropdown.classList.contains("active")) {
-        historyDropdown.classList.remove("active");
-        return;
-    }
-
-    renderHistory();
-    historyDropdown.classList.add("active");
-}
+/* =========================
+   Render History List
+========================= */
 
 function renderHistory() {
+
     const list = document.getElementById("historyList");
+    if (!list) return;
+
     list.innerHTML = "";
 
     const history = getHistory();
 
     if (history.length === 0) {
-        list.innerHTML = "<div class='history-item'>No recently read books</div>";
+        list.innerHTML =
+            "<div class='history-item'>No recently read books</div>";
         return;
     }
 
     history.forEach(item => {
+
         const row = document.createElement("div");
         row.className = "history-item";
         row.style.display = "flex";
@@ -77,14 +95,19 @@ function renderHistory() {
         title.style.cursor = "pointer";
 
         title.onclick = () => {
-            document.getElementById("historyDropdown").classList.remove("active");
-            openBook(item);
+            const dropdown = document.getElementById("historyDropdown");
+            if (dropdown) dropdown.classList.remove("active");
+
+            if (typeof openBook === "function") {
+                openBook(item);
+            }
         };
 
         const del = document.createElement("span");
         del.innerText = "✕";
         del.style.cursor = "pointer";
         del.style.opacity = "0.6";
+        del.style.marginLeft = "10px";
 
         del.onclick = (e) => {
             e.stopPropagation();
@@ -97,3 +120,11 @@ function renderHistory() {
         list.appendChild(row);
     });
 }
+
+/* =========================
+   Auto Render When Page Loads
+========================= */
+
+document.addEventListener("DOMContentLoaded", function () {
+    renderHistory();
+});

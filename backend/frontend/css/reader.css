@@ -7,6 +7,7 @@
     inset: 0;
     display: none;
     flex-direction: column;
+    z-index: 10;
 }
 
 /* ============================= */
@@ -26,7 +27,7 @@
     justify-content: space-between;
     align-items: center;
     transition: transform 0.3s ease;
-    z-index: 20;
+    z-index: 30;
 }
 
     .reader-header.hidden {
@@ -49,7 +50,7 @@
     display: flex;
     justify-content: space-between;
     transition: transform 0.3s ease;
-    z-index: 20;
+    z-index: 30;
 }
 
     .reader-footer.hidden {
@@ -72,6 +73,8 @@
 /* ============================= */
 
 .book-content {
+    position: relative;
+    z-index: 1;
     width: 100%;
     max-width: 860px;
     margin: auto;
@@ -88,6 +91,7 @@
     word-break: break-word;
 }
 
+/* Wider Screens */
 @media (min-width: 1400px) {
     .book-content {
         max-width: 1000px;
@@ -170,7 +174,45 @@
 }
 
 /* ============================= */
-/* IMAGE MODAL — FIXED */
+/* SECTION PANEL — FIXED ABOVE BOOK */
+/* ============================= */
+
+.section-panel {
+    position: fixed;
+    bottom: 100px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 380px;
+    max-height: 65vh;
+    overflow-y: auto;
+    background: var(--card);
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--border-soft);
+    border-radius: 22px;
+    padding: 16px 0;
+    display: none;
+    z-index: 200; /* Above book-content */
+    box-shadow: 0 40px 120px rgba(0,0,0,0.7);
+}
+
+.section-item {
+    padding: 12px 22px;
+    cursor: pointer;
+    transition: background 0.2s ease;
+    font-size: 15px;
+}
+
+    .section-item:hover {
+        background: rgba(255,255,255,0.06);
+    }
+
+    .section-item.active {
+        background: var(--primary);
+        color: white;
+    }
+
+/* ============================= */
+/* IMAGE MODAL — HIGHEST LAYER */
 /* ============================= */
 
 .image-modal {
@@ -218,4 +260,8 @@
         .book-content td {
             padding: 8px;
         }
+
+    .section-panel {
+        width: 90%;
+    }
 }

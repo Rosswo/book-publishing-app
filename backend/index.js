@@ -17,7 +17,7 @@ const PORT = process.env.PORT || 3000;
    Paths
 ============================== */
 
-// frontend now lives inside backend
+// frontend is inside backend now
 const FRONTEND_PATH = path.join(__dirname, "frontend");
 
 /* ==============================
@@ -60,7 +60,7 @@ app.use(uploadRoutes);
 app.use(settingsRoutes);
 
 /* ==============================
-   Root Route
+   Root Route (Explicit Fallback)
 ============================== */
 
 app.get("/", (req, res) => {
@@ -68,9 +68,9 @@ app.get("/", (req, res) => {
 });
 
 /* ==============================
-   Start Server
+   Start Server (Railway-safe)
 ============================== */
 
-app.listen(PORT, () => {
+app.listen(PORT, "0.0.0.0", () => {
     console.log(`Server running on port ${PORT}`);
 });

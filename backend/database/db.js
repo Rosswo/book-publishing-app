@@ -1,25 +1,33 @@
 const Database = require("better-sqlite3");
 const fs = require("fs");
-
-const DATA_PATH = "/data";
-const DB_PATH = "/data/books.db";
+const path = require("path");
 
 /* =========================
-   Verify Volume Mount
+   ENV-AWARE DB PATH
 ========================= */
 
-console.log("Checking DATA PATH:", DATA_PATH);
-console.log("DATA exists?", fs.existsSync(DATA_PATH));
+const isRailway = !!process.env.RAILWAY_ENVIRONMENT;
+
+const DATA_PATH = isRailway
+    ? "/data"
+    : path.join(__dirname);
+
+const DB_PATH = isRailway
+    ? "/data/books.db"
+    : path.join(__dirname, "books.db");
+
+console.log("Running in Railway?", isRailway);
+console.log("Using DB path:", DB_PATH);
+
+/* =========================
+   Ensure Directory Exists
+========================= */
 
 if (!fs.existsSync(DATA_PATH)) {
-    console.log("Creating DATA directory...");
     fs.mkdirSync(DATA_PATH, { recursive: true });
 }
 
-console.log("Opening DB at:", DB_PATH);
-
 const db = new Database(DB_PATH);
-
 console.log("DB opened successfully.");
 
 /* =========================
@@ -65,7 +73,6 @@ db.prepare(`
 `).run();
 
 /* Ensure default keys exist */
-
 const defaultSettings = ["credits", "memorial"];
 
 defaultSettings.forEach(key => {
@@ -77,10 +84,6 @@ defaultSettings.forEach(key => {
         `).run(key);
     }
 });
-
-/* =========================
-   Debug Count
-========================= */
 
 const count = db.prepare("SELECT COUNT(*) as c FROM books").get().c;
 console.log("Current book count:", count);

@@ -1,5 +1,5 @@
 // =============================
-// HISTORY.JS — Stable + UI Compatible
+// HISTORY.JS — Live Updating
 // =============================
 
 const HISTORY_KEY = "book-history";
@@ -31,10 +31,8 @@ function addToHistory(book) {
 
     let history = getHistory();
 
-    // Remove duplicate
     history = history.filter(item => item.id !== book.id);
 
-    // Add to front
     history.unshift({
         id: book.id,
         title: book.title,
@@ -46,10 +44,12 @@ function addToHistory(book) {
         lastReadAt: Date.now()
     });
 
-    // Limit history size
     history = history.slice(0, HISTORY_LIMIT);
 
     saveHistory(history);
+
+    // 🔥 FIX: re-render immediately
+    renderHistory();
 }
 
 /* =========================
@@ -60,6 +60,7 @@ function removeFromHistory(id) {
     let history = getHistory();
     history = history.filter(item => item.id !== id);
     saveHistory(history);
+    renderHistory();
 }
 
 /* =========================
@@ -112,7 +113,6 @@ function renderHistory() {
         del.onclick = (e) => {
             e.stopPropagation();
             removeFromHistory(item.id);
-            renderHistory();
         };
 
         row.appendChild(title);
@@ -122,7 +122,7 @@ function renderHistory() {
 }
 
 /* =========================
-   Auto Render When Page Loads
+   Initial Render
 ========================= */
 
 document.addEventListener("DOMContentLoaded", function () {

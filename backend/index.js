@@ -23,15 +23,10 @@ const { uploadsStatic } = require("./config/paths");
 const app = express();
 
 /* ==============================
-   Railway PORT (STRICT)
+   PORT (Railway + Local Safe)
 ============================== */
 
-const PORT = process.env.PORT;
-
-if (!PORT) {
-    console.error("❌ PORT environment variable not set.");
-    process.exit(1);
-}
+const PORT = process.env.PORT || 3000;
 
 /* ==============================
    Paths
@@ -87,7 +82,7 @@ app.get("/", (req, res) => {
 });
 
 /* ==============================
-   Start Server (Railway Safe)
+   Start Server
 ============================== */
 
 app.listen(PORT, () => {

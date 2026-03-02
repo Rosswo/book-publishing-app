@@ -12,8 +12,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
     const history = document.getElementById("historyDropdown");
     const options = document.getElementById("optionsDropdown");
-    const historyBtn = document.getElementById("historyBtn");
-    const optionsBtn = document.getElementById("optionsBtn");
     const readerContent = document.getElementById("readerContent");
 
     /* =========================
@@ -33,14 +31,14 @@ document.addEventListener("DOMContentLoaded", function () {
     };
 
     document.addEventListener("click", function (e) {
-        if (!history || !options || !historyBtn || !optionsBtn) return;
+        if (!history || !options) return;
 
-        if (
-            !history.contains(e.target) &&
-            !options.contains(e.target) &&
-            !historyBtn.contains(e.target) &&
-            !optionsBtn.contains(e.target)
-        ) {
+        const isInsideHistory = e.target.closest("#historyDropdown");
+        const isInsideOptions = e.target.closest("#optionsDropdown");
+        const isHistoryBtn = e.target.closest("[onclick='toggleHistory()']");
+        const isOptionsBtn = e.target.closest("[onclick='toggleOptions()']");
+
+        if (!isInsideHistory && !isInsideOptions && !isHistoryBtn && !isOptionsBtn) {
             history.classList.remove("active");
             options.classList.remove("active");
         }

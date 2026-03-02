@@ -37,11 +37,11 @@ async function convertDocxToSections(docxPath, folderName) {
 
                 await sharp(imageBuffer)
                     .resize({
-                        width: 1000, // lowered from 1200
+                        width: 1000,
                         withoutEnlargement: true
                     })
                     .jpeg({
-                        quality: 60, // lowered from 65
+                        quality: 60,
                         mozjpeg: true
                     })
                     .toFile(imagePath);
@@ -73,7 +73,7 @@ async function convertDocxToSections(docxPath, folderName) {
     const metadata = [];
 
     /* ======================================
-       Section Parsing Logic
+       Section Parsing Logic (FIXED)
     ====================================== */
 
     const rawChunks = html.split(/(<h1[^>]*>.*?<\/h1>)/gs).filter(Boolean);
@@ -86,22 +86,28 @@ async function convertDocxToSections(docxPath, folderName) {
 
     rawChunks.forEach(chunk => {
 
-        const isHeading = /^<h1/i.test(chunk.trim());
+        const trimmed = chunk.trim();
+        const isHeading = /^<h1/i.test(trimmed);
 
         if (isHeading) {
 
+            // Push previous section if exists
             if (currentSection.content.trim() !== "" || currentSection.titleParts.length > 0) {
                 sections.push(currentSection);
                 currentSection = { titleParts: [], content: "" };
             }
 
-            const cleanTitle = chunk
+            const cleanTitle = trimmed
                 .replace(/<[^>]*>/g, "")
                 .trim();
 
             currentSection.titleParts.push(cleanTitle);
 
-        } else {
+            // 🔥 FIX: Also include heading inside section content
+            currentSection.content += trimmed;
+        }
+
+        else {
             currentSection.content += chunk;
         }
     });

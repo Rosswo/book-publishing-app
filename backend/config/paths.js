@@ -1,15 +1,25 @@
 ﻿const express = require("express");
 const fs = require("fs");
+const path = require("path");
 
 /* =========================
-   Persistent Upload Base
+   ENV DETECTION
 ========================= */
 
-const uploadsDir = "/data/uploads";
-const booksDir = "/data/uploads/books";
-const coversDir = "/data/uploads/covers";
-const htmlDir = "/data/uploads/html";
-const imagesDir = "/data/uploads/images";
+const isRailway = !!process.env.RAILWAY_ENVIRONMENT;
+
+/* =========================
+   Upload Base Path
+========================= */
+
+const uploadsDir = isRailway
+    ? "/data/uploads"
+    : path.join(__dirname, "..", "uploads");
+
+const booksDir = path.join(uploadsDir, "books");
+const coversDir = path.join(uploadsDir, "covers");
+const htmlDir = path.join(uploadsDir, "html");
+const imagesDir = path.join(uploadsDir, "images");
 
 /* =========================
    Ensure Directories Exist
@@ -21,8 +31,11 @@ const imagesDir = "/data/uploads/images";
     }
 });
 
+console.log("Running in Railway?", isRailway);
+console.log("Uploads directory:", uploadsDir);
+
 /* =========================
-   Export Paths
+   Export
 ========================= */
 
 module.exports = {

@@ -1,5 +1,5 @@
 // =============================
-// CORE.JS — Reader Engine (UPDATED)
+// CORE.JS — Reader Engine (UPDATED UX FIX)
 // =============================
 
 let currentBook = null;
@@ -74,10 +74,6 @@ async function openBook(book) {
     document.getElementById("readerTitle").innerText = book.title;
     updateTaskbarTitle(book.title);
 
-    /* =========================
-       HTML MODE
-    ========================= */
-
     if (book.content_type === "html") {
 
         const res = await fetch(`/uploads/html/${book.content_path}/sections.json`);
@@ -101,10 +97,6 @@ async function openBook(book) {
         document.getElementById("readerFooter").style.display = "flex";
         document.getElementById("readingProgressBar").style.width = "0%";
     }
-
-    /* =========================
-       PDF MODE
-    ========================= */
 
     else if (book.content_type === "pdf") {
 
@@ -136,7 +128,6 @@ async function loadSection(savedScroll = 0) {
     if (!sections || sections.length === 0) return;
 
     const container = document.getElementById("readerContent");
-
     const section = sections[currentSectionIndex];
     if (!section) return;
 
@@ -145,7 +136,6 @@ async function loadSection(savedScroll = 0) {
     );
 
     const html = await res.text();
-
     container.innerHTML = html;
 
     groupImagesWithCaptions(container);
@@ -159,28 +149,30 @@ async function loadSection(savedScroll = 0) {
 }
 
 /* =========================
-   Image + Caption Grouping
+   Close Panel Helpers
 ========================= */
 
-function groupImagesWithCaptions(container) {
-
-    const images = container.querySelectorAll(".book-content img");
-
-    images.forEach(img => {
-
-        const next = img.nextElementSibling;
-
-        if (next && next.classList.contains("image-caption")) {
-
-            const wrapper = document.createElement("div");
-            wrapper.className = "image-block";
-
-            img.parentNode.insertBefore(wrapper, img);
-            wrapper.appendChild(img);
-            wrapper.appendChild(next);
-        }
-    });
+function closeSectionPanel() {
+    const panel = document.getElementById("sectionPanel");
+    panel.style.display = "none";
 }
+
+/* Close when clicking outside */
+document.addEventListener("click", function (e) {
+    const panel = document.getElementById("sectionPanel");
+    const toggleBtn = document.querySelector(".outline-btn");
+
+    if (!panel || panel.style.display !== "block") return;
+
+    if (!panel.contains(e.target) && !toggleBtn.contains(e.target)) {
+        closeSectionPanel();
+    }
+});
+
+/* Close when scrolling */
+document.getElementById("readerContent").addEventListener("scroll", function () {
+    closeSectionPanel();
+});
 
 /* =========================
    Section Navigation
@@ -200,6 +192,7 @@ function nextSection() {
         saveProgress();
         currentSectionIndex++;
         loadSection();
+        closeSectionPanel();
     }
 }
 
@@ -210,6 +203,7 @@ function prevSection() {
         saveProgress();
         currentSectionIndex--;
         loadSection();
+        closeSectionPanel();
     }
 }
 
@@ -226,7 +220,7 @@ function buildSectionPanel() {
             saveProgress();
             currentSectionIndex = index;
             loadSection();
-            panel.style.display = "none";
+            closeSectionPanel();
         };
 
         panel.appendChild(item);
@@ -242,7 +236,7 @@ function toggleSections() {
 }
 
 /* =========================
-   IMAGE MODAL — FIXED
+   IMAGE MODAL
 ========================= */
 
 function attachImageHandlers() {

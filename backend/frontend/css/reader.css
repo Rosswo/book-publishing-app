@@ -64,7 +64,7 @@
 .reader-content {
     flex: 1;
     overflow-y: auto;
-    overflow-x: auto;
+    overflow-x: hidden; /* prevent horizontal shift */
     padding: 120px 20px 120px 20px;
 }
 
@@ -174,7 +174,7 @@
 }
 
 /* ============================= */
-/* SECTION PANEL — FIXED ABOVE BOOK */
+/* SECTION PANEL */
 /* ============================= */
 
 .section-panel {
@@ -191,7 +191,7 @@
     border-radius: 22px;
     padding: 16px 0;
     display: none;
-    z-index: 200; /* Above book-content */
+    z-index: 200;
     box-shadow: 0 40px 120px rgba(0,0,0,0.7);
 }
 
@@ -212,7 +212,7 @@
     }
 
 /* ============================= */
-/* IMAGE MODAL — HIGHEST LAYER */
+/* IMAGE MODAL — CLASS BASED */
 /* ============================= */
 
 .image-modal {
@@ -235,6 +235,41 @@
         max-height: 90vh;
         object-fit: contain;
     }
+
+/* ============================= */
+/* BACK TO TOP — FIXED & STABLE */
+/* ============================= */
+
+.back-to-top {
+    position: fixed;
+    right: 30px;
+    bottom: 140px;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    border: none;
+    cursor: pointer;
+    background: var(--primary);
+    color: white;
+    display: none;
+    z-index: 500; /* above reader */
+    font-size: 18px;
+    box-shadow: 0 12px 35px rgba(0,0,0,0.45);
+    transition: transform 0.2s ease;
+}
+
+    .back-to-top:hover {
+        transform: translateY(-4px);
+    }
+
+    .back-to-top.show {
+        display: block;
+    }
+
+/* Hide button in library mode */
+#libraryView:not([style*="display: none"]) ~ .back-to-top {
+    display: none !important;
+}
 
 /* ============================= */
 /* MOBILE */

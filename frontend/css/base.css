@@ -1,0 +1,74 @@
+:root {
+    --bg-grad: radial-gradient(circle at 10% 20%, rgba(99,102,241,0.35), transparent 40%), radial-gradient(circle at 90% 0%, rgba(139,92,246,0.35), transparent 45%), radial-gradient(circle at 50% 120%, rgba(79,70,229,0.25), transparent 60%), linear-gradient(180deg, #060b18, #0b1220);
+    --card: rgba(17,25,40,0.78);
+    --text: #e2e8f0;
+    --primary: #6366f1;
+    --border-soft: rgba(255,255,255,0.08);
+}
+
+body.light {
+    --bg-grad: radial-gradient(circle at 15% 20%, rgba(99,102,241,0.30), transparent 45%), radial-gradient(circle at 85% 0%, rgba(236,72,153,0.30), transparent 40%), linear-gradient(180deg, #f8fafc, #eef2f7);
+    --card: rgba(255,255,255,0.75);
+    --text: #0f172a;
+    --primary: #6d28d9;
+    --border-soft: rgba(0,0,0,0.08);
+}
+
+* {
+    box-sizing: border-box;
+}
+
+html, body {
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
+}
+
+body {
+    font-family: 'Poppins', sans-serif;
+    background: var(--bg-grad);
+    /* IMPORTANT: removed background-attachment: fixed; */
+    background-repeat: no-repeat;
+    background-size: cover;
+    min-height: 100vh;
+    color: var(--text);
+    transition: background 0.5s ease, color 0.3s ease;
+}
+
+/* ===== Scrollbar Styling ===== */
+
+/* Chrome / Edge */
+::-webkit-scrollbar {
+    width: 10px;
+}
+
+::-webkit-scrollbar-track {
+    background: #0b1220;
+}
+
+body.light ::-webkit-scrollbar-track {
+    background: #e5e7eb;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #2d3748;
+    border-radius: 10px;
+}
+
+body.light ::-webkit-scrollbar-thumb {
+    background: #9ca3af;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--primary);
+}
+
+/* Firefox */
+* {
+    scrollbar-width: thin;
+    scrollbar-color: #2d3748 #0b1220;
+}
+
+body.light * {
+    scrollbar-color: #9ca3af #e5e7eb;
+}

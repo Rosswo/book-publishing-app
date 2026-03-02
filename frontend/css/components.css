@@ -1,0 +1,172 @@
+/* =========================
+   BUTTON SYSTEM
+========================= */
+
+.accent-btn {
+    background: linear-gradient(135deg, var(--primary), #4f46e5);
+    border: none;
+    color: white;
+    padding: 8px 18px;
+    border-radius: 999px;
+    cursor: pointer;
+    font-weight: 500;
+    box-shadow: 0 0 20px rgba(99,102,241,0.6);
+    transition: all 0.25s ease;
+}
+
+    .accent-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 0 30px rgba(99,102,241,0.8);
+    }
+
+.glass-btn,
+.outline-btn {
+    background: transparent;
+    border: 1px solid var(--border-soft);
+    color: var(--text);
+    padding: 8px 18px;
+    border-radius: 999px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.25s ease;
+}
+
+    .glass-btn:hover,
+    .outline-btn:hover {
+        background: rgba(255,255,255,0.05);
+        transform: translateY(-2px);
+        border-color: var(--primary);
+    }
+
+/* =========================
+   OPTIONS DROPDOWN
+========================= */
+
+.options-dropdown {
+    position: absolute;
+    bottom: 70px;
+    right: 20px;
+    width: 240px;
+    background: var(--card);
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--border-soft);
+    border-radius: 20px;
+    padding: 14px;
+    box-shadow: 0 25px 70px rgba(0,0,0,0.7);
+    display: none;
+    opacity: 0;
+    transform: translateY(15px);
+    transition: all 0.25s ease;
+}
+
+    .options-dropdown.active {
+        display: block;
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+.options-item {
+    padding: 12px 14px;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: 0.2s ease;
+    background: rgba(255,255,255,0.03);
+    margin-bottom: 6px;
+}
+
+    .options-item:hover {
+        background: rgba(255,255,255,0.08);
+        color: var(--primary);
+    }
+
+    .options-item.danger:hover {
+        color: #ff4d4f;
+    }
+
+/* =========================
+   APP MODAL
+========================= */
+
+.app-modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.65);
+    backdrop-filter: blur(8px);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 200;
+}
+
+    .app-modal.active {
+        display: flex;
+    }
+
+.app-modal-content {
+    width: 90%;
+    max-width: 600px;
+    background: var(--card);
+    border: 1px solid var(--border-soft);
+    border-radius: 24px;
+    padding: 24px;
+    box-shadow: 0 40px 120px rgba(0,0,0,0.8);
+    animation: modalFade 0.25s ease;
+}
+
+@keyframes modalFade {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.app-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 18px;
+    font-weight: 600;
+    font-size: 18px;
+}
+
+.app-modal-body {
+    max-height: 60vh;
+    overflow-y: auto;
+    line-height: 1.7;
+    opacity: 0.9;
+}
+
+/* =========================
+   Settings Modal Typography Boost
+========================= */
+
+.settings-content {
+    font-size: 1.2em; /* ~20% larger */
+    line-height: 1.8;
+}
+
+    .settings-content h1 {
+        font-size: 2.2em;
+        margin-top: 40px;
+    }
+
+    .settings-content h2 {
+        font-size: 1.8em;
+    }
+
+    .settings-content h3 {
+        font-size: 1.5em;
+    }
+
+    .settings-content p {
+        margin: 16px 0;
+    }
+
+    .settings-content img {
+        margin: 30px 0;
+    }

@@ -1,5 +1,5 @@
 // =============================
-// CORE.JS — Reader Engine (UPDATED UX FIX)
+// CORE.JS — Reader Engine (FINAL STABLE)
 // =============================
 
 let currentBook = null;
@@ -138,7 +138,7 @@ async function loadSection(savedScroll = 0) {
     const html = await res.text();
     container.innerHTML = html;
 
-    groupImagesWithCaptions(container);
+    groupImagesWithCaptions(container); // restored
     attachImageHandlers();
 
     requestAnimationFrame(() => {
@@ -149,29 +149,55 @@ async function loadSection(savedScroll = 0) {
 }
 
 /* =========================
-   Close Panel Helpers
+   Image + Caption Grouping
+========================= */
+
+function groupImagesWithCaptions(container) {
+
+    const images = container.querySelectorAll(".book-content img");
+
+    images.forEach(img => {
+
+        const next = img.nextElementSibling;
+
+        if (next && next.classList.contains("image-caption")) {
+
+            const wrapper = document.createElement("div");
+            wrapper.className = "image-block";
+
+            img.parentNode.insertBefore(wrapper, img);
+            wrapper.appendChild(img);
+            wrapper.appendChild(next);
+        }
+    });
+}
+
+/* =========================
+   Close Section Panel
 ========================= */
 
 function closeSectionPanel() {
     const panel = document.getElementById("sectionPanel");
-    panel.style.display = "none";
+    if (panel) panel.style.display = "none";
 }
 
-/* Close when clicking outside */
 document.addEventListener("click", function (e) {
     const panel = document.getElementById("sectionPanel");
     const toggleBtn = document.querySelector(".outline-btn");
 
     if (!panel || panel.style.display !== "block") return;
-
-    if (!panel.contains(e.target) && !toggleBtn.contains(e.target)) {
+    if (!panel.contains(e.target) && toggleBtn && !toggleBtn.contains(e.target)) {
         closeSectionPanel();
     }
 });
 
-/* Close when scrolling */
-document.getElementById("readerContent").addEventListener("scroll", function () {
-    closeSectionPanel();
+document.addEventListener("DOMContentLoaded", function () {
+    const container = document.getElementById("readerContent");
+    if (container) {
+        container.addEventListener("scroll", function () {
+            closeSectionPanel();
+        });
+    }
 });
 
 /* =========================
@@ -236,16 +262,20 @@ function toggleSections() {
 }
 
 /* =========================
-   IMAGE MODAL
+   Image Modal (Delegation)
 ========================= */
 
 function attachImageHandlers() {
-    document.querySelectorAll(".book-content img")
-        .forEach(img => {
-            img.onclick = () => {
-                openImageModal(img.src);
-            };
-        });
+
+    const container = document.getElementById("readerContent");
+
+    container.onclick = function (e) {
+
+        const img = e.target.closest(".book-content img");
+        if (!img) return;
+
+        openImageModal(img.src);
+    };
 }
 
 function openImageModal(src) {

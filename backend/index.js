@@ -14,6 +14,12 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 /* ==============================
+   Paths (Production Safe)
+============================== */
+
+const FRONTEND_PATH = path.join(process.cwd(), "frontend");
+
+/* ==============================
    Middleware
 ============================== */
 
@@ -33,14 +39,14 @@ app.use(
 ============================== */
 
 app.get("/admin.html", requireAdmin, (req, res) => {
-    res.sendFile(path.join(__dirname, "..", "frontend", "admin.html"));
+    res.sendFile(path.join(FRONTEND_PATH, "admin.html"));
 });
 
 /* ==============================
    Static Frontend
 ============================== */
 
-app.use(express.static(path.join(__dirname, "..", "frontend")));
+app.use(express.static(FRONTEND_PATH));
 app.use("/uploads", uploadsStatic);
 
 /* ==============================
@@ -53,11 +59,11 @@ app.use(uploadRoutes);
 app.use(settingsRoutes);
 
 /* ==============================
-   Production Root Fallback
+   Root Fallback
 ============================== */
 
 app.get("/", (req, res) => {
-    res.sendFile(path.join(__dirname, "..", "frontend", "index.html"));
+    res.sendFile(path.join(FRONTEND_PATH, "index.html"));
 });
 
 /* ==============================

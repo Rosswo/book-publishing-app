@@ -17,8 +17,8 @@ const PORT = process.env.PORT || 3000;
    Paths
 ============================== */
 
-// app/backend → go up one level → app/frontend
-const FRONTEND_PATH = path.join(__dirname, "..", "frontend");
+// frontend now lives inside backend
+const FRONTEND_PATH = path.join(__dirname, "frontend");
 
 /* ==============================
    Middleware

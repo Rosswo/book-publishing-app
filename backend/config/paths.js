@@ -1,16 +1,29 @@
-﻿const path = require("path");
-const express = require("express");
+﻿const express = require("express");
 const fs = require("fs");
 
-const uploadsDir = path.join(__dirname, "..", "uploads");
-const booksDir = path.join(uploadsDir, "books");
-const coversDir = path.join(uploadsDir, "covers");
-const htmlDir = path.join(uploadsDir, "html");
-const imagesDir = path.join(uploadsDir, "images");
+/* =========================
+   Persistent Upload Base
+========================= */
 
-[booksDir, coversDir, htmlDir, imagesDir].forEach(dir => {
-    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+const uploadsDir = "/data/uploads";
+const booksDir = "/data/uploads/books";
+const coversDir = "/data/uploads/covers";
+const htmlDir = "/data/uploads/html";
+const imagesDir = "/data/uploads/images";
+
+/* =========================
+   Ensure Directories Exist
+========================= */
+
+[uploadsDir, booksDir, coversDir, htmlDir, imagesDir].forEach(dir => {
+    if (!fs.existsSync(dir)) {
+        fs.mkdirSync(dir, { recursive: true });
+    }
 });
+
+/* =========================
+   Export Paths
+========================= */
 
 module.exports = {
     uploadsDir,

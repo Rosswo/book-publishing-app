@@ -1,7 +1,19 @@
 const Database = require("better-sqlite3");
-const path = require("path");
+const fs = require("fs");
 
-const dbPath = path.join(__dirname, "books.db");
+/* =========================
+   Ensure /data Exists
+========================= */
+
+if (!fs.existsSync("/data")) {
+    fs.mkdirSync("/data", { recursive: true });
+}
+
+/* =========================
+   Persistent DB Path
+========================= */
+
+const dbPath = "/data/books.db";
 const db = new Database(dbPath);
 
 /* =========================
@@ -26,6 +38,7 @@ db.prepare(`
 `).run();
 
 /* Ensure images_json exists */
+
 const bookColumns = db.prepare("PRAGMA table_info(books)").all();
 const bookNames = bookColumns.map(c => c.name);
 
@@ -34,13 +47,12 @@ if (!bookNames.includes("images_json")) {
 }
 
 /* =========================
-   SETTINGS TABLE (STRUCTURED)
+   SETTINGS TABLE
 ========================= */
 
 /*
 We drop old simple settings table (if exists)
-and recreate structured version.
-Safe because no production data.
+Safe because no production data yet.
 */
 
 db.prepare(`DROP TABLE IF EXISTS settings`).run();
@@ -54,7 +66,7 @@ db.prepare(`
     )
 `).run();
 
-/* Insert default structured entries */
+/* Default entries */
 
 const defaultSettings = ["credits", "memorial"];
 

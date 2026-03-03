@@ -67,21 +67,31 @@ app.post("/publish",
     ]),
     async (req, res) => {
 
-        let tempPath = null;
+        let tempDocxPath = null;
+        let tempCoverPath = null;
 
         try {
+
             if (!req.files || !req.files.docx) {
                 return res.status(400).json({ error: "No DOCX uploaded." });
             }
 
-            tempPath = req.files.docx[0].path;
+            tempDocxPath = req.files.docx[0].path;
+
+            if (req.files.cover) {
+                tempCoverPath = req.files.cover[0].path;
+            }
 
             const { title, description } = req.body;
 
             if (!title || !title.trim()) {
 
-                if (tempPath && fs.existsSync(tempPath)) {
-                    fs.unlinkSync(tempPath);
+                if (tempDocxPath && fs.existsSync(tempDocxPath)) {
+                    fs.unlinkSync(tempDocxPath);
+                }
+
+                if (tempCoverPath && fs.existsSync(tempCoverPath)) {
+                    fs.unlinkSync(tempCoverPath);
                 }
 
                 return res.status(400).json({
@@ -90,22 +100,19 @@ app.post("/publish",
             }
 
             const result = await publishBook({
-                docxPath: tempPath,
+                docxPath: tempDocxPath,
                 title: title.trim(),
-                description: description?.trim() || ""
+                description: description?.trim() || "",
+                coverPath: tempCoverPath
             });
 
-            // 🧹 Delete temp DOCX
-            if (tempPath && fs.existsSync(tempPath)) {
-                fs.unlinkSync(tempPath);
+            // Clean temp uploads
+            if (tempDocxPath && fs.existsSync(tempDocxPath)) {
+                fs.unlinkSync(tempDocxPath);
             }
 
-            // 🧹 Delete temp cover (we'll implement proper saving next step)
-            if (req.files.cover) {
-                const coverTemp = req.files.cover[0].path;
-                if (fs.existsSync(coverTemp)) {
-                    fs.unlinkSync(coverTemp);
-                }
+            if (tempCoverPath && fs.existsSync(tempCoverPath)) {
+                fs.unlinkSync(tempCoverPath);
             }
 
             res.json({
@@ -115,15 +122,12 @@ app.post("/publish",
 
         } catch (err) {
 
-            if (tempPath && fs.existsSync(tempPath)) {
-                fs.unlinkSync(tempPath);
+            if (tempDocxPath && fs.existsSync(tempDocxPath)) {
+                fs.unlinkSync(tempDocxPath);
             }
 
-            if (req.files && req.files.cover) {
-                const coverTemp = req.files.cover[0].path;
-                if (fs.existsSync(coverTemp)) {
-                    fs.unlinkSync(coverTemp);
-                }
+            if (tempCoverPath && fs.existsSync(tempCoverPath)) {
+                fs.unlinkSync(tempCoverPath);
             }
 
             console.error(err);
@@ -134,7 +138,6 @@ app.post("/publish",
         }
     }
 );
-
 /* ============================
    DELETE Book
 ============================ */

@@ -31,7 +31,7 @@ function fail(message) {
    Core Publish Function
 ================================ */
 
-async function publishBook({ docxPath, title, description }) {
+async function publishBook({ docxPath, title, description, coverPath }) {
 
     if (!docxPath) {
         throw new Error("No DOCX file path provided.");
@@ -77,6 +77,24 @@ async function publishBook({ docxPath, title, description }) {
     success("Book files written.");
 
     /* ================================
+       Save Cover (if provided)
+    ================================= */
+
+    let coverRelativePath = "";
+
+    if (coverPath && fs.existsSync(coverPath)) {
+
+        const ext = path.extname(coverPath);
+        const coverFileName = "cover" + ext;
+
+        const destinationPath = path.join(result.bookFolderPath, coverFileName);
+
+        fs.copyFileSync(coverPath, destinationPath);
+
+        coverRelativePath = `./books/${result.bookId}/${coverFileName}`;
+    }
+
+    /* ================================
        Update Registry
     ================================= */
 
@@ -85,7 +103,8 @@ async function publishBook({ docxPath, title, description }) {
     updateBooksRegistry({
         bookId: result.bookId,
         title: title.trim(),
-        description: description || ""
+        description: description || "",
+        cover_url: coverRelativePath
     });
 
     success("Registry updated.");
@@ -108,12 +127,9 @@ async function publishBook({ docxPath, title, description }) {
             cwd: projectRoot
         }).toString();
 
-        if (!status.trim()) {
-            info("No changes to commit.");
-        } else {
-            const commitMessage = `Publish: ${title.trim()}`;
+        if (status.trim()) {
 
-            execSync(`git commit -m "${commitMessage}"`, {
+            execSync(`git commit -m "Publish: ${title}"`, {
                 cwd: projectRoot,
                 stdio: "inherit"
             });

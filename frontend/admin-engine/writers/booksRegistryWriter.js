@@ -13,7 +13,6 @@ function updateBooksRegistry(bookData) {
         fs.readFileSync(booksJsonPath, "utf8")
     );
 
-    // Duplicate protection
     if (existing.some(b => b.id === bookData.bookId)) {
         throw new Error("Duplicate book ID detected.");
     }
@@ -22,14 +21,13 @@ function updateBooksRegistry(bookData) {
         id: bookData.bookId,
         title: bookData.title,
         description: bookData.description || "",
-        cover_url: "",
+        cover_url: bookData.cover_url || "",
         content_type: "html",
         content_path: bookData.bookId,
         file_path: null,
         original_pdf_path: null
     });
 
-    // Simple direct write (no atomic rename)
     fs.writeFileSync(
         booksJsonPath,
         JSON.stringify(existing, null, 2),

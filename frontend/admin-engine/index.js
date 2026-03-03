@@ -1,5 +1,6 @@
 ﻿const fs = require("fs");
 const path = require("path");
+const { execSync } = require("child_process");
 
 const convertDocxToHtml = require("./converters/docxConverter");
 const splitIntoSections = require("./processors/sectionSplitter");
@@ -43,6 +44,31 @@ if (!fs.existsSync(absolutePath)) {
         console.log("✅ Book generated and registered.");
         console.log("📁 Folder:", result.bookFolderPath);
         console.log("📚 Sections:", result.sectionCount);
+
+        // =============================
+        // GIT AUTOMATION
+        // =============================
+
+        console.log("🔄 Running Git automation...");
+
+        const projectRoot = path.resolve(__dirname, "../..");
+
+        try {
+            execSync("git add .", { cwd: projectRoot, stdio: "inherit" });
+
+            const commitMessage = `Publish: ${sections[0].title}`;
+            execSync(`git commit -m "${commitMessage}"`, {
+                cwd: projectRoot,
+                stdio: "inherit"
+            });
+
+            execSync("git push", { cwd: projectRoot, stdio: "inherit" });
+
+            console.log("🚀 Git push completed.");
+
+        } catch (gitErr) {
+            console.error("⚠️ Git automation failed:", gitErr.message);
+        }
 
     } catch (err) {
         console.error("❌ Error:", err);

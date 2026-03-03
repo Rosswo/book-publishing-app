@@ -2,6 +2,7 @@
 const path = require("path");
 const multer = require("multer");
 const fs = require("fs");
+const { execSync } = require("child_process");
 
 const open = (...args) =>
     import("open").then(mod => mod.default(...args));
@@ -41,6 +42,21 @@ app.get("/", (req, res) => {
 });
 
 /* ============================
+   GET Books
+============================ */
+
+app.get("/books", (req, res) => {
+    try {
+        const booksPath = path.join(__dirname, "../frontend/books/books.json");
+        const books = JSON.parse(fs.readFileSync(booksPath, "utf8"));
+        res.json(books);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: "Failed to load books." });
+    }
+});
+
+/* ============================
    Publish Endpoint
 ============================ */
 
@@ -57,7 +73,7 @@ app.post("/publish", upload.single("docx"), async (req, res) => {
 
         const { title, description } = req.body;
 
-        // 🔒 Title required (no fallback allowed)
+        // 🔒 Title required
         if (!title || !title.trim()) {
 
             if (tempPath && fs.existsSync(tempPath)) {
@@ -97,6 +113,74 @@ app.post("/publish", upload.single("docx"), async (req, res) => {
         res.status(500).json({
             error: err.message || "Publishing failed."
         });
+    }
+});
+
+/* ============================
+   DELETE Book
+============================ */
+
+app.delete("/books/:id", (req, res) => {
+
+    const bookId = req.params.id;
+
+    try {
+
+        const booksPath = path.join(__dirname, "../frontend/books/books.json");
+        const booksRoot = path.join(__dirname, "../frontend/books");
+
+        const books = JSON.parse(fs.readFileSync(booksPath, "utf8"));
+
+        const bookIndex = books.findIndex(b => b.id === bookId);
+
+        if (bookIndex === -1) {
+            return res.status(404).json({ error: "Book not found." });
+        }
+
+        const book = books[bookIndex];
+
+        const bookFolder = path.join(booksRoot, book.content_path);
+
+        // 🔥 Permanently delete book folder
+        if (fs.existsSync(bookFolder)) {
+            fs.rmSync(bookFolder, { recursive: true, force: true });
+        }
+
+        // Remove from registry
+        books.splice(bookIndex, 1);
+
+        fs.writeFileSync(booksPath, JSON.stringify(books, null, 2), "utf8");
+
+        /* ============================
+           Git Automation
+        ============================ */
+
+        const projectRoot = path.resolve(__dirname, "..");
+
+        execSync("git add .", { cwd: projectRoot });
+
+        const status = execSync("git status --porcelain", {
+            cwd: projectRoot
+        }).toString();
+
+        if (status.trim()) {
+
+            execSync(`git commit -m "Delete: ${book.title}"`, {
+                cwd: projectRoot,
+                stdio: "inherit"
+            });
+
+            execSync("git push", {
+                cwd: projectRoot,
+                stdio: "inherit"
+            });
+        }
+
+        res.json({ success: true });
+
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: "Delete failed." });
     }
 });
 

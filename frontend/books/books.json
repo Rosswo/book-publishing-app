@@ -1,15 +1,5 @@
 [
   {
-    "id": "demo-html",
-    "title": "Demo HTML Book",
-    "description": "This is a demo description to test the library layout and reader system.",
-    "cover_url": "",
-    "content_type": "html",
-    "content_path": "demo-html",
-    "file_path": null,
-    "original_pdf_path": null
-  },
-  {
     "id": "book-he-lehkhabu-in-trlan-atumte-1772527775884",
     "title": "He lehkhabu in târlan atumte:",
     "description": "Description coming soon...",

@@ -73,10 +73,28 @@
       font-weight: bold;
     }
 
-    .disabled {
-      opacity: 0.5;
-      pointer-events: none;
+    .book-row {
+      background: white;
+      padding: 15px;
+      margin-bottom: 10px;
+      border-radius: 5px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 1px 5px rgba(0,0,0,0.1);
     }
+
+    .delete-btn {
+      background: #dc3545;
+      color: white;
+      border: none;
+      padding: 6px 10px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    .delete-btn:hover { background: #b52a37; }
+
   </style>
 </head>
 <body>
@@ -99,19 +117,10 @@
       <label>Description</label>
       <input type="text" name="description" />
 
-      <label>Version</label>
-      <input type="text" name="version" value="1.0" />
-
       <label>Word Document (.docx)</label>
       <input type="file" name="docx"
         accept=".docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
         required />
-
-      <label>Original PDF (Optional)</label>
-      <input type="file" name="book" accept="application/pdf" disabled />
-
-      <label>Cover Image</label>
-      <input type="file" name="cover" accept="image/*" disabled />
 
       <button type="submit">Upload Book</button>
     </form>
@@ -119,22 +128,18 @@
     <div class="message" id="uploadMessage"></div>
   </div>
 
-  <!-- ================= PLACEHOLDER SECTIONS (Coming Next) ================= -->
-  <div class="form-container disabled">
-    <h2>Credits (Coming Next)</h2>
-  </div>
-
-  <div class="form-container disabled">
-    <h2>Memorial (Coming Next)</h2>
-  </div>
-
-  <div class="form-container disabled">
-    <h2>Existing Books (Coming Next)</h2>
+  <!-- ================= EXISTING BOOKS ================= -->
+  <div class="form-container">
+    <h2>Existing Books</h2>
+    <div id="booksList">Loading...</div>
   </div>
 
   <script>
     const uploadForm = document.getElementById("uploadForm");
     const uploadMessage = document.getElementById("uploadMessage");
+    const booksList = document.getElementById("booksList");
+
+    /* ================= BOOK UPLOAD ================= */
 
     uploadForm.addEventListener("submit", async (e) => {
       e.preventDefault();
@@ -155,11 +160,61 @@
         uploadMessage.style.color = "green";
         uploadMessage.textContent = "Book published successfully!";
         uploadForm.reset();
+        loadBooks();
       } else {
         uploadMessage.style.color = "red";
         uploadMessage.textContent = result.error || "Publish failed.";
       }
     });
+
+    /* ================= LOAD BOOKS ================= */
+
+    async function loadBooks() {
+      const res = await fetch("/books");
+      const books = await res.json();
+
+      booksList.innerHTML = "";
+
+      if (!books.length) {
+        booksList.innerHTML = "<p>No books found.</p>";
+        return;
+      }
+
+      books.forEach(book => {
+        const row = document.createElement("div");
+        row.className = "book-row";
+
+        row.innerHTML = `
+          <div>
+            <strong>${book.title}</strong>
+            <div style="font-size:12px;color:gray;">
+              Type: ${book.content_type}
+            </div>
+          </div>
+          <button class="delete-btn">Delete</button>
+        `;
+
+        const deleteBtn = row.querySelector("button");
+
+        deleteBtn.onclick = async () => {
+          if (!confirm("Are you sure you want to permanently delete this book?")) return;
+
+          const res = await fetch(`/books/${book.id}`, {
+            method: "DELETE"
+          });
+
+          if (res.ok) {
+            loadBooks();
+          } else {
+            alert("Delete failed.");
+          }
+        };
+
+        booksList.appendChild(row);
+      });
+    }
+
+    loadBooks();
   </script>
 
 </body>

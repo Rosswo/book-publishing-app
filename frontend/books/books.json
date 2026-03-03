@@ -168,5 +168,15 @@
     "content_path": "book-4444-1772541039795",
     "file_path": null,
     "original_pdf_path": null
+  },
+  {
+    "id": "book-4444-1772541073092",
+    "title": "4444",
+    "description": "Description coming soon...",
+    "cover_url": "",
+    "content_type": "html",
+    "content_path": "book-4444-1772541073092",
+    "file_path": null,
+    "original_pdf_path": null
   }
 ]

@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Book Library</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="css/base.css">
+    <link rel="stylesheet" href="css/library.css">
+    <link rel="stylesheet" href="css/reader.css">
+    <link rel="stylesheet" href="css/components.css">
+</head>
+
+<body>
+
+    <!-- ================= TOPBAR ================= -->
+
+    <div class="topbar" id="libraryTopbar">
+        <h2 class="library-title">Book Library</h2>
+        <div class="topbar-actions">
+            <button class="accent-btn small" onclick="toggleTheme()">Theme</button>
+        </div>
+    </div>
+
+    <!-- ================= LIBRARY VIEW ================= -->
+
+    <div class="library" id="libraryView">
+        <div class="grid" id="booksContainer"></div>
+    </div>
+
+    <!-- ================= READER VIEW ================= -->
+
+    <div class="reader" id="readerView">
+        <div class="reader-header" id="readerHeader">
+            <button class="glass-btn" onclick="closeReader()">← Back</button>
+            <div class="reader-title" id="readerTitle"></div>
+            <button class="accent-btn small" onclick="toggleTheme()">Theme</button>
+        </div>
+
+        <div class="reading-progress">
+            <div class="reading-progress-bar" id="readingProgressBar"></div>
+        </div>
+
+        <div class="reader-content" id="readerContent"></div>
+
+        <div class="reader-footer" id="readerFooter">
+            <button class="glass-btn" onclick="prevSection()">← Previous</button>
+            <button class="outline-btn" onclick="toggleSections()">Sections ▾</button>
+            <button class="glass-btn" onclick="nextSection()">Next →</button>
+        </div>
+    </div>
+
+    <!-- ================= SECTION PANEL ================= -->
+
+    <div class="section-panel" id="sectionPanel"></div>
+
+    <!-- ================= IMAGE MODAL ================= -->
+
+    <div class="image-modal" id="imageModal" onclick="closeImageModal()">
+        <img id="modalImage" />
+    </div>
+
+    <!-- ================= BACK TO TOP ================= -->
+
+    <button class="back-to-top" id="backToTopBtn" onclick="scrollToTop()">↑</button>
+
+    <!-- ================= TASKBAR ================= -->
+
+    <div class="library-taskbar" id="libraryTaskbar">
+
+        <!-- Left -->
+        <button id="historyBtn" class="taskbar-btn" onclick="toggleHistory()">History</button>
+
+        <!-- Right -->
+        <button id="optionsBtn" class="taskbar-btn" onclick="toggleOptions()">Options</button>
+
+        <!-- History Dropdown -->
+        <div class="history-dropdown" id="historyDropdown">
+            <div id="historyList"></div>
+        </div>
+
+        <!-- Options Dropdown -->
+        <div class="options-dropdown" id="optionsDropdown">
+            <div class="options-item" onclick="window.location.href='/admin.html'">Admin Panel</div>
+            <div class="options-item" onclick="openAppVersion()">App Version</div>
+            <div class="options-item" onclick="openCredits()">Credits To</div>
+            <div class="options-item" onclick="openMemorial()">Memorial</div>
+            <div class="options-item danger" onclick="exitApp()">Exit</div>
+        </div>
+
+    </div>
+
+    <!-- ================= MODAL ================= -->
+
+    <div class="app-modal" id="appModal">
+        <div class="app-modal-content">
+            <div class="app-modal-header">
+                <span id="appModalTitle">Title</span>
+                <button class="glass-btn" onclick="closeAppModal()">✕</button>
+            </div>
+            <div class="app-modal-body" id="appModalBody"></div>
+        </div>
+    </div>
+
+       <!-- ================= SCRIPTS ================= -->
+
+    <script src="js/history.js"></script>
+    <script src="js/settings.js"></script>
+    <script src="js/ui.js"></script>
+    <script src="js/core.js"></script>
+    <script type="module" src="js/app.js"></script>
+</body>
+</html>

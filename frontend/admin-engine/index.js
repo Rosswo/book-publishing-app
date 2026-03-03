@@ -28,119 +28,132 @@ function fail(message) {
 }
 
 /* ================================
-   Start
+   Core Publish Function
 ================================ */
 
-console.log("\n================================");
-console.log("      Book Admin Engine");
-console.log("================================");
+async function publishBook({ docxPath }) {
 
-const inputPath = process.argv[2];
-
-if (!inputPath) {
-    fail("No DOCX file path provided.");
-    process.exit(1);
-}
-
-const absolutePath = path.resolve(inputPath);
-
-if (!fs.existsSync(absolutePath)) {
-    fail(`File does not exist: ${absolutePath}`);
-    process.exit(1);
-}
-
-(async () => {
-    try {
-        /* ================================
-           Conversion
-        ================================= */
-
-        step("Converting DOCX...");
-        const html = await convertDocxToHtml(absolutePath);
-        success("DOCX converted.");
-
-        /* ================================
-           Section Split
-        ================================= */
-
-        step("Splitting into sections...");
-        const sections = splitIntoSections(html);
-
-        if (!sections || sections.length === 0) {
-            throw new Error("No sections detected after split.");
-        }
-
-        success(`Sections detected: ${sections.length}`);
-
-        /* ================================
-           Write Book
-        ================================= */
-
-        step("Writing book to filesystem...");
-        const result = writeBook(sections);
-        success("Book files written.");
-
-        /* ================================
-           Update Registry
-        ================================= */
-
-        step("Updating books registry...");
-        updateBooksRegistry({
-            bookId: result.bookId,
-            title: sections[0].title
-        });
-        success("Registry updated.");
-
-        console.log("\n📁 Folder:", result.bookFolderPath);
-        console.log("📚 Sections:", result.sectionCount);
-
-        /* ================================
-           Git Automation
-        ================================= */
-
-        step("Running Git automation...");
-
-        const projectRoot = path.resolve(__dirname, "../..");
-
-        try {
-            execSync("git add .", { cwd: projectRoot });
-
-            const status = execSync("git status --porcelain", {
-                cwd: projectRoot
-            }).toString();
-
-            if (!status.trim()) {
-                info("No changes to commit.");
-            } else {
-                const commitMessage = `Publish: ${sections[0].title}`;
-
-                execSync(`git commit -m "${commitMessage}"`, {
-                    cwd: projectRoot,
-                    stdio: "inherit"
-                });
-
-                execSync("git push", {
-                    cwd: projectRoot,
-                    stdio: "inherit"
-                });
-
-                success("Git push completed.");
-            }
-
-        } catch (gitErr) {
-            fail(`Git automation failed: ${gitErr.message}`);
-        }
-
-        /* ================================
-           Finish
-        ================================= */
-
-        console.log("\n================================");
-        success("Publishing complete.");
-        console.log("================================\n");
-
-    } catch (err) {
-        fail(err.message || err);
-        process.exit(1);
+    if (!docxPath) {
+        throw new Error("No DOCX file path provided.");
     }
-})();
+
+    const absolutePath = path.resolve(docxPath);
+
+    if (!fs.existsSync(absolutePath)) {
+        throw new Error(`File does not exist: ${absolutePath}`);
+    }
+
+    /* ================================
+       Conversion
+    ================================= */
+
+    step("Converting DOCX...");
+    const html = await convertDocxToHtml(absolutePath);
+    success("DOCX converted.");
+
+    /* ================================
+       Section Split
+    ================================= */
+
+    step("Splitting into sections...");
+    const sections = splitIntoSections(html);
+
+    if (!sections || sections.length === 0) {
+        throw new Error("No sections detected after split.");
+    }
+
+    success(`Sections detected: ${sections.length}`);
+
+    /* ================================
+       Write Book
+    ================================= */
+
+    step("Writing book to filesystem...");
+    const result = writeBook(sections);
+    success("Book files written.");
+
+    /* ================================
+       Update Registry
+    ================================= */
+
+    step("Updating books registry...");
+    updateBooksRegistry({
+        bookId: result.bookId,
+        title: sections[0].title
+    });
+    success("Registry updated.");
+
+    console.log("\n📁 Folder:", result.bookFolderPath);
+    console.log("📚 Sections:", result.sectionCount);
+
+    /* ================================
+       Git Automation
+    ================================= */
+
+    step("Running Git automation...");
+
+    const projectRoot = path.resolve(__dirname, "../..");
+
+    try {
+        execSync("git add .", { cwd: projectRoot });
+
+        const status = execSync("git status --porcelain", {
+            cwd: projectRoot
+        }).toString();
+
+        if (!status.trim()) {
+            info("No changes to commit.");
+        } else {
+            const commitMessage = `Publish: ${sections[0].title}`;
+
+            execSync(`git commit -m "${commitMessage}"`, {
+                cwd: projectRoot,
+                stdio: "inherit"
+            });
+
+            execSync("git push", {
+                cwd: projectRoot,
+                stdio: "inherit"
+            });
+
+            success("Git push completed.");
+        }
+
+    } catch (gitErr) {
+        fail(`Git automation failed: ${gitErr.message}`);
+    }
+
+    success("Publishing complete.");
+
+    return {
+        bookId: result.bookId,
+        title: sections[0].title,
+        sectionCount: result.sectionCount
+    };
+}
+
+/* ================================
+   CLI Support (Backward Compatible)
+================================ */
+
+if (require.main === module) {
+
+    console.log("\n================================");
+    console.log("      Book Admin Engine");
+    console.log("================================");
+
+    const inputPath = process.argv[2];
+
+    publishBook({ docxPath: inputPath })
+        .then(() => {
+            console.log("\n================================");
+            console.log("✔ Done.");
+            console.log("================================\n");
+        })
+        .catch(err => {
+            fail(err.message || err);
+            process.exit(1);
+        });
+}
+
+module.exports = publishBook;

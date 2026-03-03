@@ -31,10 +31,14 @@ function fail(message) {
    Core Publish Function
 ================================ */
 
-async function publishBook({ docxPath }) {
+async function publishBook({ docxPath, title, description }) {
 
     if (!docxPath) {
         throw new Error("No DOCX file path provided.");
+    }
+
+    if (!title || !title.trim()) {
+        throw new Error("Title is required.");
     }
 
     const absolutePath = path.resolve(docxPath);
@@ -77,10 +81,13 @@ async function publishBook({ docxPath }) {
     ================================= */
 
     step("Updating books registry...");
+
     updateBooksRegistry({
         bookId: result.bookId,
-        title: sections[0].title
+        title: title.trim(),
+        description: description || ""
     });
+
     success("Registry updated.");
 
     console.log("\n📁 Folder:", result.bookFolderPath);
@@ -104,7 +111,7 @@ async function publishBook({ docxPath }) {
         if (!status.trim()) {
             info("No changes to commit.");
         } else {
-            const commitMessage = `Publish: ${sections[0].title}`;
+            const commitMessage = `Publish: ${title.trim()}`;
 
             execSync(`git commit -m "${commitMessage}"`, {
                 cwd: projectRoot,
@@ -127,7 +134,7 @@ async function publishBook({ docxPath }) {
 
     return {
         bookId: result.bookId,
-        title: sections[0].title,
+        title: title.trim(),
         sectionCount: result.sectionCount
     };
 }
@@ -144,7 +151,11 @@ if (require.main === module) {
 
     const inputPath = process.argv[2];
 
-    publishBook({ docxPath: inputPath })
+    publishBook({
+        docxPath: inputPath,
+        title: "Untitled Book",
+        description: ""
+    })
         .then(() => {
             console.log("\n================================");
             console.log("✔ Done.");

@@ -21,7 +21,7 @@ function updateBooksRegistry(bookData) {
     existing.push({
         id: bookData.bookId,
         title: bookData.title,
-        description: "Description coming soon...",
+        description: bookData.description || "",
         cover_url: "",
         content_type: "html",
         content_path: bookData.bookId,

@@ -55,8 +55,24 @@ app.post("/publish", upload.single("docx"), async (req, res) => {
 
         tempPath = req.file.path;
 
+        const { title, description } = req.body;
+
+        // 🔒 Title required (no fallback allowed)
+        if (!title || !title.trim()) {
+
+            if (tempPath && fs.existsSync(tempPath)) {
+                fs.unlinkSync(tempPath);
+            }
+
+            return res.status(400).json({
+                error: "Title is required."
+            });
+        }
+
         const result = await publishBook({
-            docxPath: tempPath
+            docxPath: tempPath,
+            title: title.trim(),
+            description: description?.trim() || ""
         });
 
         // 🧹 Delete temp file after success

@@ -18,5 +18,15 @@
     "content_path": "book-bung-1-1772545758654",
     "file_path": null,
     "original_pdf_path": null
+  },
+  {
+    "id": "book-bung-1-1772545795253",
+    "title": "Test 2",
+    "description": "sdfghsdgh",
+    "cover_url": "./books/book-bung-1-1772545795253/cover",
+    "content_type": "html",
+    "content_path": "book-bung-1-1772545795253",
+    "file_path": null,
+    "original_pdf_path": null
   }
 ]

@@ -1,4 +1,4 @@
-const fs = require("fs");
+﻿const fs = require("fs");
 const path = require("path");
 
 function updateBooksRegistry(bookData) {
@@ -9,7 +9,14 @@ function updateBooksRegistry(bookData) {
         throw new Error("books.json not found.");
     }
 
-    const existing = JSON.parse(fs.readFileSync(booksJsonPath, "utf8"));
+    const existing = JSON.parse(
+        fs.readFileSync(booksJsonPath, "utf8")
+    );
+
+    // ✅ Duplicate protection
+    if (existing.some(b => b.id === bookData.bookId)) {
+        throw new Error("Duplicate book ID detected.");
+    }
 
     existing.push({
         id: bookData.bookId,
@@ -22,11 +29,16 @@ function updateBooksRegistry(bookData) {
         original_pdf_path: null
     });
 
+    // ✅ Atomic safe write
+    const tempPath = booksJsonPath + ".tmp";
+
     fs.writeFileSync(
-        booksJsonPath,
+        tempPath,
         JSON.stringify(existing, null, 2),
         "utf8"
     );
+
+    fs.renameSync(tempPath, booksJsonPath);
 
     return true;
 }

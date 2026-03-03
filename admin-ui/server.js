@@ -60,61 +60,80 @@ app.get("/books", (req, res) => {
    Publish Endpoint
 ============================ */
 
-app.post("/publish", upload.single("docx"), async (req, res) => {
+app.post("/publish",
+    upload.fields([
+        { name: "docx", maxCount: 1 },
+        { name: "cover", maxCount: 1 }
+    ]),
+    async (req, res) => {
 
-    let tempPath = null;
+        let tempPath = null;
 
-    try {
-        if (!req.file) {
-            return res.status(400).json({ error: "No DOCX uploaded." });
-        }
+        try {
+            if (!req.files || !req.files.docx) {
+                return res.status(400).json({ error: "No DOCX uploaded." });
+            }
 
-        tempPath = req.file.path;
+            tempPath = req.files.docx[0].path;
 
-        const { title, description } = req.body;
+            const { title, description } = req.body;
 
-        // 🔒 Title required
-        if (!title || !title.trim()) {
+            if (!title || !title.trim()) {
+
+                if (tempPath && fs.existsSync(tempPath)) {
+                    fs.unlinkSync(tempPath);
+                }
+
+                return res.status(400).json({
+                    error: "Title is required."
+                });
+            }
+
+            const result = await publishBook({
+                docxPath: tempPath,
+                title: title.trim(),
+                description: description?.trim() || ""
+            });
+
+            // 🧹 Delete temp DOCX
+            if (tempPath && fs.existsSync(tempPath)) {
+                fs.unlinkSync(tempPath);
+            }
+
+            // 🧹 Delete temp cover (we'll implement proper saving next step)
+            if (req.files.cover) {
+                const coverTemp = req.files.cover[0].path;
+                if (fs.existsSync(coverTemp)) {
+                    fs.unlinkSync(coverTemp);
+                }
+            }
+
+            res.json({
+                success: true,
+                result
+            });
+
+        } catch (err) {
 
             if (tempPath && fs.existsSync(tempPath)) {
                 fs.unlinkSync(tempPath);
             }
 
-            return res.status(400).json({
-                error: "Title is required."
+            if (req.files && req.files.cover) {
+                const coverTemp = req.files.cover[0].path;
+                if (fs.existsSync(coverTemp)) {
+                    fs.unlinkSync(coverTemp);
+                }
+            }
+
+            console.error(err);
+
+            res.status(500).json({
+                error: err.message || "Publishing failed."
             });
         }
-
-        const result = await publishBook({
-            docxPath: tempPath,
-            title: title.trim(),
-            description: description?.trim() || ""
-        });
-
-        // 🧹 Delete temp file after success
-        if (tempPath && fs.existsSync(tempPath)) {
-            fs.unlinkSync(tempPath);
-        }
-
-        res.json({
-            success: true,
-            result
-        });
-
-    } catch (err) {
-
-        // 🧹 Delete temp file if error occurred
-        if (tempPath && fs.existsSync(tempPath)) {
-            fs.unlinkSync(tempPath);
-        }
-
-        console.error(err);
-
-        res.status(500).json({
-            error: err.message || "Publishing failed."
-        });
     }
-});
+);
 
 /* ============================
    DELETE Book
@@ -141,19 +160,13 @@ app.delete("/books/:id", (req, res) => {
 
         const bookFolder = path.join(booksRoot, book.content_path);
 
-        // 🔥 Permanently delete book folder
         if (fs.existsSync(bookFolder)) {
             fs.rmSync(bookFolder, { recursive: true, force: true });
         }
 
-        // Remove from registry
         books.splice(bookIndex, 1);
 
         fs.writeFileSync(booksPath, JSON.stringify(books, null, 2), "utf8");
-
-        /* ============================
-           Git Automation
-        ============================ */
 
         const projectRoot = path.resolve(__dirname, "..");
 

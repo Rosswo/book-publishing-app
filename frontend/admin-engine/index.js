@@ -46,7 +46,7 @@ if (!fs.existsSync(absolutePath)) {
         console.log("📚 Sections:", result.sectionCount);
 
         // =============================
-        // GIT AUTOMATION
+        // GIT AUTOMATION (SMART VERSION)
         // =============================
 
         console.log("🔄 Running Git automation...");
@@ -54,17 +54,31 @@ if (!fs.existsSync(absolutePath)) {
         const projectRoot = path.resolve(__dirname, "../..");
 
         try {
+            // Stage changes
             execSync("git add .", { cwd: projectRoot, stdio: "inherit" });
 
-            const commitMessage = `Publish: ${sections[0].title}`;
-            execSync(`git commit -m "${commitMessage}"`, {
-                cwd: projectRoot,
-                stdio: "inherit"
-            });
+            // Check if anything changed
+            const status = execSync("git status --porcelain", {
+                cwd: projectRoot
+            }).toString();
 
-            execSync("git push", { cwd: projectRoot, stdio: "inherit" });
+            if (!status.trim()) {
+                console.log("ℹ️ No changes to commit.");
+            } else {
+                const commitMessage = `Publish: ${sections[0].title}`;
 
-            console.log("🚀 Git push completed.");
+                execSync(`git commit -m "${commitMessage}"`, {
+                    cwd: projectRoot,
+                    stdio: "inherit"
+                });
+
+                execSync("git push", {
+                    cwd: projectRoot,
+                    stdio: "inherit"
+                });
+
+                console.log("🚀 Git push completed.");
+            }
 
         } catch (gitErr) {
             console.error("⚠️ Git automation failed:", gitErr.message);

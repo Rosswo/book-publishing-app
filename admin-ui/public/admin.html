@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8" />
+    <title>Admin UI</title>
+</head>
+<body>
+    <h1>Test Publish</h1>
+
+    <form id="publishForm" enctype="multipart/form-data">
+        <input type="file" name="docx" accept=".docx" required />
+        <button type="submit">Publish</button>
+    </form>
+
+    <pre id="output"></pre>
+
+    <script>
+        const form = document.getElementById("publishForm");
+        const output = document.getElementById("output");
+
+        form.addEventListener("submit", async (e) => {
+            e.preventDefault();
+
+            const formData = new FormData(form);
+
+            const res = await fetch("/publish", {
+                method: "POST",
+                body: formData
+            });
+
+            const data = await res.json();
+
+            output.textContent = JSON.stringify(data, null, 2);
+        });
+    </script>
+</body>
+</html>

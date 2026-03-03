@@ -1,6 +1,0 @@
-[
-  {
-    "title": "Credits",
-    "file": "section-1.html"
-  }
-]

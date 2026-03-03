@@ -67,6 +67,12 @@
 
     button:hover { background: #4f46e5; }
 
+    .delete-btn {
+      background: #dc3545;
+    }
+
+    .delete-btn:hover { background: #b52a37; }
+
     .message {
       margin-top: 10px;
       text-align: center;
@@ -83,18 +89,6 @@
       align-items: center;
       box-shadow: 0 1px 5px rgba(0,0,0,0.1);
     }
-
-    .delete-btn {
-      background: #dc3545;
-      color: white;
-      border: none;
-      padding: 6px 10px;
-      border-radius: 4px;
-      cursor: pointer;
-    }
-
-    .delete-btn:hover { background: #b52a37; }
-
   </style>
 </head>
 <body>
@@ -131,6 +125,26 @@
     <div class="message" id="uploadMessage"></div>
   </div>
 
+  <!-- ================= CREDITS PDF ================= -->
+  <div class="form-container">
+    <h2>Upload Credits (PDF)</h2>
+    <form id="creditsForm" enctype="multipart/form-data">
+      <input type="file" name="pdf" accept="application/pdf" required />
+      <button type="submit">Publish Credits</button>
+    </form>
+    <div class="message" id="creditsMessage"></div>
+  </div>
+
+  <!-- ================= MEMORIAL PDF ================= -->
+  <div class="form-container">
+    <h2>Upload Memorial (PDF)</h2>
+    <form id="memorialForm" enctype="multipart/form-data">
+      <input type="file" name="pdf" accept="application/pdf" required />
+      <button type="submit">Publish Memorial</button>
+    </form>
+    <div class="message" id="memorialMessage"></div>
+  </div>
+
   <!-- ================= EXISTING BOOKS ================= -->
   <div class="form-container">
     <h2>Existing Books</h2>
@@ -141,6 +155,12 @@
     const uploadForm = document.getElementById("uploadForm");
     const uploadMessage = document.getElementById("uploadMessage");
     const booksList = document.getElementById("booksList");
+
+    const creditsForm = document.getElementById("creditsForm");
+    const creditsMessage = document.getElementById("creditsMessage");
+
+    const memorialForm = document.getElementById("memorialForm");
+    const memorialMessage = document.getElementById("memorialMessage");
 
     /* ================= BOOK UPLOAD ================= */
 
@@ -167,6 +187,60 @@
       } else {
         uploadMessage.style.color = "red";
         uploadMessage.textContent = result.error || "Publish failed.";
+      }
+    });
+
+    /* ================= CREDITS UPLOAD ================= */
+
+    creditsForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      creditsMessage.textContent = "Uploading...";
+      creditsMessage.style.color = "black";
+
+      const formData = new FormData(creditsForm);
+
+      const res = await fetch("/publish-setting/credits", {
+        method: "POST",
+        body: formData
+      });
+
+      const result = await res.json();
+
+      if (res.ok) {
+        creditsMessage.style.color = "green";
+        creditsMessage.textContent = "Credits updated successfully!";
+        creditsForm.reset();
+      } else {
+        creditsMessage.style.color = "red";
+        creditsMessage.textContent = result.error || "Upload failed.";
+      }
+    });
+
+    /* ================= MEMORIAL UPLOAD ================= */
+
+    memorialForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      memorialMessage.textContent = "Uploading...";
+      memorialMessage.style.color = "black";
+
+      const formData = new FormData(memorialForm);
+
+      const res = await fetch("/publish-setting/memorial", {
+        method: "POST",
+        body: formData
+      });
+
+      const result = await res.json();
+
+      if (res.ok) {
+        memorialMessage.style.color = "green";
+        memorialMessage.textContent = "Memorial updated successfully!";
+        memorialForm.reset();
+      } else {
+        memorialMessage.style.color = "red";
+        memorialMessage.textContent = result.error || "Upload failed.";
       }
     });
 
@@ -202,7 +276,7 @@
         deleteBtn.onclick = async () => {
           if (!confirm("Are you sure you want to permanently delete this book?")) return;
 
-          const res = await fetch(`/books/${book.id}`, {
+          const res = await fetch("/books/" + book.id, {
             method: "DELETE"
           });
 

@@ -57,7 +57,7 @@ app.get("/books", (req, res) => {
 });
 
 /* ============================
-   Publish Endpoint
+   Publish Book
 ============================ */
 
 app.post("/publish",
@@ -106,7 +106,6 @@ app.post("/publish",
                 coverPath: tempCoverPath
             });
 
-            // Clean temp uploads
             if (tempDocxPath && fs.existsSync(tempDocxPath)) {
                 fs.unlinkSync(tempDocxPath);
             }
@@ -138,6 +137,7 @@ app.post("/publish",
         }
     }
 );
+
 /* ============================
    DELETE Book
 ============================ */
@@ -197,6 +197,96 @@ app.delete("/books/:id", (req, res) => {
     } catch (err) {
         console.error(err);
         res.status(500).json({ error: "Delete failed." });
+    }
+});
+
+/* ============================
+   Publish Setting PDF (Credits / Memorial)
+============================ */
+
+app.post("/publish-setting/:key", upload.single("pdf"), (req, res) => {
+
+    const key = req.params.key;
+
+    if (!["credits", "memorial"].includes(key)) {
+        return res.status(400).json({ error: "Invalid setting key." });
+    }
+
+    if (!req.file) {
+        return res.status(400).json({ error: "No PDF uploaded." });
+    }
+
+    try {
+
+        const settingsFolder = path.join(
+            __dirname,
+            "../frontend/books/settings",
+            key
+        );
+
+        if (!fs.existsSync(settingsFolder)) {
+            fs.mkdirSync(settingsFolder, { recursive: true });
+        }
+
+        // Overwrite existing files
+        fs.readdirSync(settingsFolder).forEach(file => {
+            fs.rmSync(path.join(settingsFolder, file), { force: true });
+        });
+
+        const finalFileName = `${key}.pdf`;
+        const finalPath = path.join(settingsFolder, finalFileName);
+
+        fs.copyFileSync(req.file.path, finalPath);
+
+        fs.writeFileSync(
+            path.join(settingsFolder, "config.json"),
+            JSON.stringify({
+                content_type: "pdf",
+                file: finalFileName
+            }, null, 2),
+            "utf8"
+        );
+
+        fs.unlinkSync(req.file.path);
+
+        /* ============================
+           Git Automation
+        ============================ */
+
+        const projectRoot = path.resolve(__dirname, "..");
+
+        execSync("git add .", { cwd: projectRoot });
+
+        const status = execSync("git status --porcelain", {
+            cwd: projectRoot
+        }).toString();
+
+        if (status.trim()) {
+
+            execSync(`git commit -m "Update setting: ${key}"`, {
+                cwd: projectRoot,
+                stdio: "inherit"
+            });
+
+            execSync("git push", {
+                cwd: projectRoot,
+                stdio: "inherit"
+            });
+        }
+
+        res.json({ success: true });
+
+    } catch (err) {
+
+        if (req.file && fs.existsSync(req.file.path)) {
+            fs.unlinkSync(req.file.path);
+        }
+
+        console.error(err);
+
+        res.status(500).json({
+            error: err.message || "Upload failed."
+        });
     }
 });
 

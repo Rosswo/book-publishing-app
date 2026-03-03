@@ -1,37 +1,166 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <meta charset="UTF-8" />
-    <title>Admin UI</title>
+  <meta charset="UTF-8" />
+  <title>Admin - Dashboard</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f4f4;
+      padding: 40px;
+      margin: 0;
+    }
+
+    .top-bar {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 20px;
+    }
+
+    .top-bar a {
+      text-decoration: none;
+      padding: 8px 12px;
+      border-radius: 5px;
+      font-size: 14px;
+      color: white;
+    }
+
+    .library-link { background: #007bff; }
+    .logout-link { background: #dc3545; }
+
+    h1 { text-align: center; }
+
+    .form-container {
+      max-width: 700px;
+      margin: auto;
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      margin-bottom: 40px;
+    }
+
+    label {
+      display: block;
+      margin-top: 15px;
+      font-weight: bold;
+    }
+
+    input {
+      width: 100%;
+      padding: 8px;
+      margin-top: 5px;
+      box-sizing: border-box;
+    }
+
+    button {
+      margin-top: 15px;
+      padding: 10px;
+      width: 100%;
+      background: #6366f1;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      font-size: 14px;
+      cursor: pointer;
+    }
+
+    button:hover { background: #4f46e5; }
+
+    .message {
+      margin-top: 10px;
+      text-align: center;
+      font-weight: bold;
+    }
+
+    .disabled {
+      opacity: 0.5;
+      pointer-events: none;
+    }
+  </style>
 </head>
 <body>
-    <h1>Test Publish</h1>
 
-    <form id="publishForm" enctype="multipart/form-data">
-        <input type="file" name="docx" accept=".docx" required />
-        <button type="submit">Publish</button>
+  <div class="top-bar">
+    <a href="#" class="library-link">Local Admin</a>
+    <a href="#" class="logout-link">Node Required</a>
+  </div>
+
+  <h1>Admin Dashboard</h1>
+
+  <!-- ================= BOOK UPLOAD ================= -->
+  <div class="form-container">
+    <h2>Upload Book</h2>
+    <form id="uploadForm" enctype="multipart/form-data">
+      
+      <label>Title *</label>
+      <input type="text" name="title" required />
+
+      <label>Description</label>
+      <input type="text" name="description" />
+
+      <label>Version</label>
+      <input type="text" name="version" value="1.0" />
+
+      <label>Word Document (.docx)</label>
+      <input type="file" name="docx"
+        accept=".docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+        required />
+
+      <label>Original PDF (Optional)</label>
+      <input type="file" name="book" accept="application/pdf" disabled />
+
+      <label>Cover Image</label>
+      <input type="file" name="cover" accept="image/*" disabled />
+
+      <button type="submit">Upload Book</button>
     </form>
 
-    <pre id="output"></pre>
+    <div class="message" id="uploadMessage"></div>
+  </div>
 
-    <script>
-        const form = document.getElementById("publishForm");
-        const output = document.getElementById("output");
+  <!-- ================= PLACEHOLDER SECTIONS (Coming Next) ================= -->
+  <div class="form-container disabled">
+    <h2>Credits (Coming Next)</h2>
+  </div>
 
-        form.addEventListener("submit", async (e) => {
-            e.preventDefault();
+  <div class="form-container disabled">
+    <h2>Memorial (Coming Next)</h2>
+  </div>
 
-            const formData = new FormData(form);
+  <div class="form-container disabled">
+    <h2>Existing Books (Coming Next)</h2>
+  </div>
 
-            const res = await fetch("/publish", {
-                method: "POST",
-                body: formData
-            });
+  <script>
+    const uploadForm = document.getElementById("uploadForm");
+    const uploadMessage = document.getElementById("uploadMessage");
 
-            const data = await res.json();
+    uploadForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
 
-            output.textContent = JSON.stringify(data, null, 2);
-        });
-    </script>
+      uploadMessage.textContent = "Publishing...";
+      uploadMessage.style.color = "black";
+
+      const formData = new FormData(uploadForm);
+
+      const res = await fetch("/publish", {
+        method: "POST",
+        body: formData
+      });
+
+      const result = await res.json();
+
+      if (res.ok) {
+        uploadMessage.style.color = "green";
+        uploadMessage.textContent = "Book published successfully!";
+        uploadForm.reset();
+      } else {
+        uploadMessage.style.color = "red";
+        uploadMessage.textContent = result.error || "Publish failed.";
+      }
+    });
+  </script>
+
 </body>
 </html>

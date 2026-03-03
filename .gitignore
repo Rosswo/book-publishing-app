@@ -4,5 +4,8 @@ backend/node_modules/
 uploads/
 backend/uploads/
 
+worker/
+.wrangler/
+
 *.db
 .env

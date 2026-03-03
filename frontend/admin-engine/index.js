@@ -7,63 +7,110 @@ const splitIntoSections = require("./processors/sectionSplitter");
 const writeBook = require("./writers/bookWriter");
 const updateBooksRegistry = require("./writers/booksRegistryWriter");
 
-console.log("Book Admin Engine Starting...");
+/* ================================
+   Structured Logging Helpers
+================================ */
+
+function step(message) {
+    console.log(`\n➡ ${message}`);
+}
+
+function success(message) {
+    console.log(`✔ ${message}`);
+}
+
+function info(message) {
+    console.log(`ℹ ${message}`);
+}
+
+function fail(message) {
+    console.error(`✖ ${message}`);
+}
+
+/* ================================
+   Start
+================================ */
+
+console.log("\n================================");
+console.log("      Book Admin Engine");
+console.log("================================");
 
 const inputPath = process.argv[2];
 
 if (!inputPath) {
-    console.error("❌ No DOCX file path provided.");
+    fail("No DOCX file path provided.");
     process.exit(1);
 }
 
 const absolutePath = path.resolve(inputPath);
 
 if (!fs.existsSync(absolutePath)) {
-    console.error("❌ File does not exist:", absolutePath);
+    fail(`File does not exist: ${absolutePath}`);
     process.exit(1);
 }
 
 (async () => {
     try {
-        console.log("📄 Converting DOCX...");
-        const html = await convertDocxToHtml(absolutePath);
+        /* ================================
+           Conversion
+        ================================= */
 
-        console.log("✂ Splitting into sections...");
+        step("Converting DOCX...");
+        const html = await convertDocxToHtml(absolutePath);
+        success("DOCX converted.");
+
+        /* ================================
+           Section Split
+        ================================= */
+
+        step("Splitting into sections...");
         const sections = splitIntoSections(html);
 
-        console.log("🧩 Sections detected:", sections.length);
+        if (!sections || sections.length === 0) {
+            throw new Error("No sections detected after split.");
+        }
 
-        console.log("💾 Writing book...");
+        success(`Sections detected: ${sections.length}`);
+
+        /* ================================
+           Write Book
+        ================================= */
+
+        step("Writing book to filesystem...");
         const result = writeBook(sections);
+        success("Book files written.");
 
+        /* ================================
+           Update Registry
+        ================================= */
+
+        step("Updating books registry...");
         updateBooksRegistry({
             bookId: result.bookId,
             title: sections[0].title
         });
+        success("Registry updated.");
 
-        console.log("✅ Book generated and registered.");
-        console.log("📁 Folder:", result.bookFolderPath);
+        console.log("\n📁 Folder:", result.bookFolderPath);
         console.log("📚 Sections:", result.sectionCount);
 
-        // =============================
-        // GIT AUTOMATION (SMART VERSION)
-        // =============================
+        /* ================================
+           Git Automation
+        ================================= */
 
-        console.log("🔄 Running Git automation...");
+        step("Running Git automation...");
 
         const projectRoot = path.resolve(__dirname, "../..");
 
         try {
-            // Stage changes
-            execSync("git add .", { cwd: projectRoot, stdio: "inherit" });
+            execSync("git add .", { cwd: projectRoot });
 
-            // Check if anything changed
             const status = execSync("git status --porcelain", {
                 cwd: projectRoot
             }).toString();
 
             if (!status.trim()) {
-                console.log("ℹ️ No changes to commit.");
+                info("No changes to commit.");
             } else {
                 const commitMessage = `Publish: ${sections[0].title}`;
 
@@ -77,15 +124,23 @@ if (!fs.existsSync(absolutePath)) {
                     stdio: "inherit"
                 });
 
-                console.log("🚀 Git push completed.");
+                success("Git push completed.");
             }
 
         } catch (gitErr) {
-            console.error("⚠️ Git automation failed:", gitErr.message);
+            fail(`Git automation failed: ${gitErr.message}`);
         }
 
+        /* ================================
+           Finish
+        ================================= */
+
+        console.log("\n================================");
+        success("Publishing complete.");
+        console.log("================================\n");
+
     } catch (err) {
-        console.error("❌ Error:", err);
+        fail(err.message || err);
         process.exit(1);
     }
 })();

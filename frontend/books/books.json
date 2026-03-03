@@ -1,12 +1,22 @@
 [
-  {
-    "id": "book-bung-1-1772545795253",
-    "title": "Test 2",
-    "description": "sdfghsdgh",
-    "cover_url": "./books/book-bung-1-1772545795253/cover",
-    "content_type": "html",
-    "content_path": "book-bung-1-1772545795253",
-    "file_path": null,
-    "original_pdf_path": null
-  }
+    {
+        "id": "demo-html",
+        "title": "Demo HTML Book",
+        "description": "This is a demo description to test the library layout and reader system.",
+        "cover_url": "",
+        "content_type": "html",
+        "content_path": "demo-html",
+        "file_path": null,
+        "original_pdf_path": null
+    },
+    {
+        "id": "book-he-lehkhabu-in-trlan-atumte-1772527775884",
+        "title": "He lehkhabu in târlan atumte:",
+        "description": "Description coming soon...",
+        "cover_url": "",
+        "content_type": "html",
+        "content_path": "book-he-lehkhabu-in-trlan-atumte-1772527775884",
+        "file_path": null,
+        "original_pdf_path": null
+    }
 ]

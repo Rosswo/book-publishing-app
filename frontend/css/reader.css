@@ -69,7 +69,7 @@
 }
 
 /* ============================= */
-/* PDF VIEWER */
+/* PDF VIEWER (FIXED SCALE) */
 /* ============================= */
 
 .pdf-wrapper {
@@ -77,15 +77,19 @@
     height: calc(100vh - 160px);
     display: flex;
     justify-content: center;
-    align-items: center;
+    align-items: flex-start;
+    overflow: auto;
 }
 
 .pdf-frame {
-    width: min(100%, 900px);
+    width: 900px;
     height: 100%;
     border: none;
     background: white;
     border-radius: 8px;
+    /* enlarge PDF viewer */
+    transform: scale(1.6);
+    transform-origin: top center;
 }
 
 /* ============================= */
@@ -324,5 +328,9 @@
 
     .pdf-wrapper {
         height: calc(100vh - 120px);
+    }
+
+    .pdf-frame {
+        transform: scale(2.1);
     }
 }

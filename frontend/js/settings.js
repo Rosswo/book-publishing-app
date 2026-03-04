@@ -18,7 +18,6 @@ async function renderSetting(key, title) {
 
         const basePath = `./books/settings/${key}`;
 
-        // Load config
         const configRes = await fetch(`${basePath}/config.json`);
 
         if (!configRes.ok) {
@@ -43,8 +42,10 @@ async function renderSetting(key, title) {
             let combinedHTML = "";
 
             for (const section of sections) {
+
                 const sectionRes = await fetch(`${basePath}/${section.file}`);
                 combinedHTML += await sectionRes.text();
+
             }
 
             openAppModal(
@@ -59,13 +60,13 @@ async function renderSetting(key, title) {
             return;
         }
 
-        // ================= PDF MODE (PDF.js viewer) =================
+        // ================= PDF MODE =================
         if (config.content_type === "pdf" && config.file) {
 
             const pdfPath = `${basePath}/${config.file}`;
 
             const viewerPath =
-                `./pdfjs/web/viewer.html?file=${encodeURIComponent(pdfPath)}`;
+                `./web/viewer.html?file=${encodeURIComponent(pdfPath)}`;
 
             openAppModal(
                 title,

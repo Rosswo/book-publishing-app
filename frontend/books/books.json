@@ -28,5 +28,15 @@
     "content_path": null,
     "file_path": "book-1772612911363/book.pdf",
     "original_pdf_path": null
+  },
+  {
+    "id": "book-1772614647036",
+    "title": "TEST 3 PDF",
+    "description": "",
+    "cover_url": "./books/book-1772614647036/cover",
+    "content_type": "pdf",
+    "content_path": null,
+    "file_path": "book-1772614647036/book.pdf",
+    "original_pdf_path": null
   }
 ]

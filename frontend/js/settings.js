@@ -1,5 +1,5 @@
 // =============================
-// SETTINGS.JS — Static Version (Unified PDF Viewer)
+// SETTINGS.JS — Static Version (PDF.js Viewer)
 // =============================
 
 function openAppModal(title, contentHTML) {
@@ -18,6 +18,7 @@ async function renderSetting(key, title) {
 
         const basePath = `./books/settings/${key}`;
 
+        // Load config
         const configRes = await fetch(`${basePath}/config.json`);
 
         if (!configRes.ok) {
@@ -58,16 +59,19 @@ async function renderSetting(key, title) {
             return;
         }
 
-        // ================= PDF MODE =================
+        // ================= PDF MODE (PDF.js viewer) =================
         if (config.content_type === "pdf" && config.file) {
 
             const pdfPath = `${basePath}/${config.file}`;
 
+            const viewerPath =
+                `./pdfjs/web/viewer.html?file=${encodeURIComponent(pdfPath)}`;
+
             openAppModal(
                 title,
                 `<iframe
-                    src="${pdfPath}#toolbar=0"
-                    style="width:100%; height:80vh; border:none;">
+                    src="${viewerPath}"
+                    style="width:100%; height:85vh; border:none;">
                 </iframe>`
             );
 
@@ -86,11 +90,13 @@ async function renderSetting(key, title) {
 }
 
 function openAppVersion() {
+
     openAppModal(
         "App Version",
         `<p><strong>Version:</strong> 1.0.0</p>
          <p>This version is manually updated when the client upgrades the application.</p>`
     );
+
 }
 
 function openCredits() {
@@ -102,9 +108,11 @@ function openMemorial() {
 }
 
 function exitApp() {
+
     if (window.close) {
         window.close();
     } else {
         location.reload();
     }
+
 }

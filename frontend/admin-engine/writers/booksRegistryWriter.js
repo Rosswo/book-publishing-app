@@ -17,16 +17,26 @@ function updateBooksRegistry(bookData) {
         throw new Error("Duplicate book ID detected.");
     }
 
-    existing.push({
+    const entry = {
         id: bookData.bookId,
         title: bookData.title,
         description: bookData.description || "",
         cover_url: bookData.cover_url || "",
-        content_type: "html",
-        content_path: bookData.bookId,
+        content_type: bookData.content_type || "html",
+        content_path: null,
         file_path: null,
         original_pdf_path: null
-    });
+    };
+
+    if (entry.content_type === "html") {
+        entry.content_path = bookData.bookId;
+    }
+
+    if (entry.content_type === "pdf") {
+        entry.file_path = `${bookData.bookId}/book.pdf`;
+    }
+
+    existing.push(entry);
 
     fs.writeFileSync(
         booksJsonPath,

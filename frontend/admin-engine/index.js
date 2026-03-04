@@ -141,7 +141,7 @@ function publishPdfBook({ pdfPath, title, description, coverPath }) {
         description: description || "",
         cover_url: coverRelativePath,
         content_type: "pdf",
-        file_path: `./books/${bookId}/${pdfFileName}`
+        file_path: `${bookId}/${pdfFileName}`
     });
 
     runGit(title);

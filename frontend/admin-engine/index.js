@@ -8,61 +8,52 @@ const writeBook = require("./writers/bookWriter");
 const updateBooksRegistry = require("./writers/booksRegistryWriter");
 
 /* ================================
-   Structured Logging Helpers
+   Logging Helpers
 ================================ */
 
-function step(message) {
-    console.log(`\n➡ ${message}`);
+function step(msg) {
+    console.log(`\n➡ ${msg}`);
 }
 
-function success(message) {
-    console.log(`✔ ${message}`);
+function success(msg) {
+    console.log(`✔ ${msg}`);
 }
 
-function info(message) {
-    console.log(`ℹ ${message}`);
-}
-
-function fail(message) {
-    console.error(`✖ ${message}`);
+function fail(msg) {
+    console.error(`✖ ${msg}`);
 }
 
 /* ================================
-   DOCX Publish (existing pipeline)
+   DOCX Publish
 ================================ */
 
 async function publishBook({ docxPath, title, description, coverPath }) {
 
-    if (!docxPath) {
-        throw new Error("No DOCX file path provided.");
-    }
-
-    if (!title || !title.trim()) {
-        throw new Error("Title is required.");
-    }
+    if (!docxPath) throw new Error("No DOCX provided.");
+    if (!title || !title.trim()) throw new Error("Title is required.");
 
     const absolutePath = path.resolve(docxPath);
 
     if (!fs.existsSync(absolutePath)) {
-        throw new Error(`File does not exist: ${absolutePath}`);
+        throw new Error("DOCX file does not exist.");
     }
 
     step("Converting DOCX...");
     const html = await convertDocxToHtml(absolutePath);
     success("DOCX converted.");
 
-    step("Splitting into sections...");
+    step("Splitting sections...");
     const sections = splitIntoSections(html);
 
-    if (!sections || sections.length === 0) {
-        throw new Error("No sections detected after split.");
+    if (!sections.length) {
+        throw new Error("No sections detected.");
     }
 
-    success(`Sections detected: ${sections.length}`);
+    success(`Sections: ${sections.length}`);
 
-    step("Writing book to filesystem...");
+    step("Writing book...");
     const result = writeBook(sections);
-    success("Book files written.");
+    success("Book written.");
 
     let coverRelativePath = "";
 
@@ -71,14 +62,17 @@ async function publishBook({ docxPath, title, description, coverPath }) {
         const ext = path.extname(coverPath);
         const coverFileName = "cover" + ext;
 
-        const destinationPath = path.join(result.bookFolderPath, coverFileName);
+        const destination = path.join(
+            result.bookFolderPath,
+            coverFileName
+        );
 
-        fs.copyFileSync(coverPath, destinationPath);
+        fs.copyFileSync(coverPath, destination);
 
         coverRelativePath = `./books/${result.bookId}/${coverFileName}`;
     }
 
-    step("Updating books registry...");
+    step("Updating registry...");
 
     updateBooksRegistry({
         bookId: result.bookId,
@@ -93,34 +87,31 @@ async function publishBook({ docxPath, title, description, coverPath }) {
 
     return {
         bookId: result.bookId,
-        title: title.trim(),
+        title,
         sectionCount: result.sectionCount
     };
 }
 
 /* ================================
-   NEW: PDF Publish
+   PDF Publish
 ================================ */
 
 function publishPdfBook({ pdfPath, title, description, coverPath }) {
 
-    if (!pdfPath) {
-        throw new Error("No PDF file path provided.");
-    }
-
-    if (!title || !title.trim()) {
-        throw new Error("Title is required.");
-    }
+    if (!pdfPath) throw new Error("No PDF provided.");
+    if (!title || !title.trim()) throw new Error("Title is required.");
 
     const absolutePath = path.resolve(pdfPath);
 
     if (!fs.existsSync(absolutePath)) {
-        throw new Error(`File does not exist: ${absolutePath}`);
+        throw new Error("PDF file does not exist.");
     }
 
     const bookId = `book-${Date.now()}`;
 
-    const booksRoot = path.resolve(__dirname, "../../books");
+    /* FIXED PATH */
+    const booksRoot = path.resolve(__dirname, "../books");
+
     const bookFolder = path.join(booksRoot, bookId);
 
     fs.mkdirSync(bookFolder);
@@ -145,7 +136,7 @@ function publishPdfBook({ pdfPath, title, description, coverPath }) {
     }
 
     updateBooksRegistry({
-        bookId: bookId,
+        bookId,
         title: title.trim(),
         description: description || "",
         cover_url: coverRelativePath,
@@ -159,7 +150,7 @@ function publishPdfBook({ pdfPath, title, description, coverPath }) {
 
     return {
         bookId,
-        title: title.trim()
+        title
     };
 }
 
@@ -177,9 +168,10 @@ function runGit(title) {
 
         execSync("git add .", { cwd: projectRoot });
 
-        const status = execSync("git status --porcelain", {
-            cwd: projectRoot
-        }).toString();
+        const status = execSync(
+            "git status --porcelain",
+            { cwd: projectRoot }
+        ).toString();
 
         if (status.trim()) {
 
@@ -193,11 +185,11 @@ function runGit(title) {
                 stdio: "inherit"
             });
 
-            success("Git push completed.");
+            success("Git push complete.");
         }
 
-    } catch (gitErr) {
-        fail(`Git automation failed: ${gitErr.message}`);
+    } catch (err) {
+        fail(`Git automation failed: ${err.message}`);
     }
 }
 
@@ -207,16 +199,16 @@ function runGit(title) {
 
 if (require.main === module) {
 
-    const inputPath = process.argv[2];
+    const input = process.argv[2];
 
     publishBook({
-        docxPath: inputPath,
+        docxPath: input,
         title: "Untitled Book",
         description: ""
     })
         .then(() => console.log("Done"))
         .catch(err => {
-            fail(err.message || err);
+            fail(err.message);
             process.exit(1);
         });
 }

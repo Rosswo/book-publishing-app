@@ -1,298 +1,338 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta charset="UTF-8" />
-  <title>Admin - Dashboard</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #f4f4f4;
-      padding: 40px;
-      margin: 0;
-    }
+<meta charset="UTF-8" />
+<title>Admin - Dashboard</title>
 
-    .top-bar {
-      display: flex;
-      justify-content: space-between;
-      margin-bottom: 20px;
-    }
+<style>
+body{
+font-family:Arial,sans-serif;
+background:#f4f4f4;
+padding:40px;
+margin:0;
+}
 
-    .top-bar a {
-      text-decoration: none;
-      padding: 8px 12px;
-      border-radius: 5px;
-      font-size: 14px;
-      color: white;
-    }
+.top-bar{
+display:flex;
+justify-content:space-between;
+margin-bottom:20px;
+}
 
-    .library-link { background: #007bff; }
-    .logout-link { background: #dc3545; }
+.top-bar a{
+text-decoration:none;
+padding:8px 12px;
+border-radius:5px;
+font-size:14px;
+color:white;
+}
 
-    h1 { text-align: center; }
+.library-link{background:#007bff;}
+.logout-link{background:#dc3545;}
 
-    .form-container {
-      max-width: 700px;
-      margin: auto;
-      background: white;
-      padding: 20px;
-      border-radius: 8px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-      margin-bottom: 40px;
-    }
+h1{text-align:center;}
 
-    label {
-      display: block;
-      margin-top: 15px;
-      font-weight: bold;
-    }
+.form-container{
+max-width:700px;
+margin:auto;
+background:white;
+padding:20px;
+border-radius:8px;
+box-shadow:0 2px 8px rgba(0,0,0,0.1);
+margin-bottom:40px;
+}
 
-    input {
-      width: 100%;
-      padding: 8px;
-      margin-top: 5px;
-      box-sizing: border-box;
-    }
+label{
+display:block;
+margin-top:15px;
+font-weight:bold;
+}
 
-    button {
-      margin-top: 15px;
-      padding: 10px;
-      width: 100%;
-      background: #6366f1;
-      color: white;
-      border: none;
-      border-radius: 5px;
-      font-size: 14px;
-      cursor: pointer;
-    }
+input{
+width:100%;
+padding:8px;
+margin-top:5px;
+box-sizing:border-box;
+}
 
-    button:hover { background: #4f46e5; }
+button{
+margin-top:15px;
+padding:10px;
+width:100%;
+background:#6366f1;
+color:white;
+border:none;
+border-radius:5px;
+font-size:14px;
+cursor:pointer;
+}
 
-    .delete-btn {
-      background: #dc3545;
-    }
+button:hover{background:#4f46e5;}
 
-    .delete-btn:hover { background: #b52a37; }
+.delete-btn{
+background:#dc3545;
+}
 
-    .message {
-      margin-top: 10px;
-      text-align: center;
-      font-weight: bold;
-    }
+.delete-btn:hover{
+background:#b52a37;
+}
 
-    .book-row {
-      background: white;
-      padding: 15px;
-      margin-bottom: 10px;
-      border-radius: 5px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      box-shadow: 0 1px 5px rgba(0,0,0,0.1);
-    }
-  </style>
+.message{
+margin-top:10px;
+text-align:center;
+font-weight:bold;
+}
+
+.book-row{
+background:white;
+padding:15px;
+margin-bottom:10px;
+border-radius:5px;
+display:flex;
+justify-content:space-between;
+align-items:center;
+box-shadow:0 1px 5px rgba(0,0,0,0.1);
+}
+</style>
 </head>
+
 <body>
 
-  <div class="top-bar">
-    <a href="#" class="library-link">Local Admin</a>
-    <a href="#" class="logout-link">Node Required</a>
-  </div>
+<div class="top-bar">
+<a href="#" class="library-link">Local Admin</a>
+<a href="#" class="logout-link">Node Required</a>
+</div>
 
-  <h1>Admin Dashboard</h1>
+<h1>Admin Dashboard</h1>
 
-  <!-- ================= BOOK UPLOAD ================= -->
-  <div class="form-container">
-    <h2>Upload Book</h2>
-    <form id="uploadForm" enctype="multipart/form-data">
-      
-      <label>Title *</label>
-      <input type="text" name="title" required />
+<!-- ================= BOOK UPLOAD ================= -->
 
-      <label>Description</label>
-      <input type="text" name="description" />
+<div class="form-container">
 
-      <label>Word Document (.docx)</label>
-      <input type="file" name="docx"
-        accept=".docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-        required />
+<h2>Upload Book</h2>
 
-      <label>Cover Image (Optional)</label>
-      <input type="file" name="cover" accept="image/*" />
+<form id="uploadForm" enctype="multipart/form-data">
 
-      <button type="submit">Upload Book</button>
-    </form>
+<label>Title *</label>
+<input type="text" name="title" required />
 
-    <div class="message" id="uploadMessage"></div>
-  </div>
+<label>Description</label>
+<input type="text" name="description" />
 
-  <!-- ================= CREDITS PDF ================= -->
-  <div class="form-container">
-    <h2>Upload Credits (PDF)</h2>
-    <form id="creditsForm" enctype="multipart/form-data">
-      <input type="file" name="pdf" accept="application/pdf" required />
-      <button type="submit">Publish Credits</button>
-    </form>
-    <div class="message" id="creditsMessage"></div>
-  </div>
+<label>Word Document (.docx)</label>
+<input type="file"
+name="docx"
+accept=".docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document" />
 
-  <!-- ================= MEMORIAL PDF ================= -->
-  <div class="form-container">
-    <h2>Upload Memorial (PDF)</h2>
-    <form id="memorialForm" enctype="multipart/form-data">
-      <input type="file" name="pdf" accept="application/pdf" required />
-      <button type="submit">Publish Memorial</button>
-    </form>
-    <div class="message" id="memorialMessage"></div>
-  </div>
+<label>OR Upload PDF Book</label>
+<input type="file"
+name="book"
+accept="application/pdf" />
 
-  <!-- ================= EXISTING BOOKS ================= -->
-  <div class="form-container">
-    <h2>Existing Books</h2>
-    <div id="booksList">Loading...</div>
-  </div>
+<label>Cover Image (Optional)</label>
+<input type="file"
+name="cover"
+accept="image/*" />
 
-  <script>
-    const uploadForm = document.getElementById("uploadForm");
-    const uploadMessage = document.getElementById("uploadMessage");
-    const booksList = document.getElementById("booksList");
+<button type="submit">Publish Book</button>
 
-    const creditsForm = document.getElementById("creditsForm");
-    const creditsMessage = document.getElementById("creditsMessage");
+</form>
 
-    const memorialForm = document.getElementById("memorialForm");
-    const memorialMessage = document.getElementById("memorialMessage");
+<div class="message" id="uploadMessage"></div>
 
-    /* ================= BOOK UPLOAD ================= */
+</div>
 
-    uploadForm.addEventListener("submit", async (e) => {
-      e.preventDefault();
+<!-- ================= CREDITS ================= -->
 
-      uploadMessage.textContent = "Publishing...";
-      uploadMessage.style.color = "black";
+<div class="form-container">
 
-      const formData = new FormData(uploadForm);
+<h2>Upload Credits (PDF)</h2>
 
-      const res = await fetch("/publish", {
-        method: "POST",
-        body: formData
-      });
+<form id="creditsForm" enctype="multipart/form-data">
+<input type="file" name="pdf" accept="application/pdf" required />
+<button type="submit">Publish Credits</button>
+</form>
 
-      const result = await res.json();
+<div class="message" id="creditsMessage"></div>
 
-      if (res.ok) {
-        uploadMessage.style.color = "green";
-        uploadMessage.textContent = "Book published successfully!";
-        uploadForm.reset();
-        loadBooks();
-      } else {
-        uploadMessage.style.color = "red";
-        uploadMessage.textContent = result.error || "Publish failed.";
-      }
-    });
+</div>
 
-    /* ================= CREDITS UPLOAD ================= */
+<!-- ================= MEMORIAL ================= -->
 
-    creditsForm.addEventListener("submit", async (e) => {
-      e.preventDefault();
+<div class="form-container">
 
-      creditsMessage.textContent = "Uploading...";
-      creditsMessage.style.color = "black";
+<h2>Upload Memorial (PDF)</h2>
 
-      const formData = new FormData(creditsForm);
+<form id="memorialForm" enctype="multipart/form-data">
+<input type="file" name="pdf" accept="application/pdf" required />
+<button type="submit">Publish Memorial</button>
+</form>
 
-      const res = await fetch("/publish-setting/credits", {
-        method: "POST",
-        body: formData
-      });
+<div class="message" id="memorialMessage"></div>
 
-      const result = await res.json();
+</div>
 
-      if (res.ok) {
-        creditsMessage.style.color = "green";
-        creditsMessage.textContent = "Credits updated successfully!";
-        creditsForm.reset();
-      } else {
-        creditsMessage.style.color = "red";
-        creditsMessage.textContent = result.error || "Upload failed.";
-      }
-    });
+<!-- ================= BOOK LIST ================= -->
 
-    /* ================= MEMORIAL UPLOAD ================= */
+<div class="form-container">
 
-    memorialForm.addEventListener("submit", async (e) => {
-      e.preventDefault();
+<h2>Existing Books</h2>
 
-      memorialMessage.textContent = "Uploading...";
-      memorialMessage.style.color = "black";
+<div id="booksList">Loading...</div>
 
-      const formData = new FormData(memorialForm);
+</div>
 
-      const res = await fetch("/publish-setting/memorial", {
-        method: "POST",
-        body: formData
-      });
+<script>
 
-      const result = await res.json();
+const uploadForm=document.getElementById("uploadForm");
+const uploadMessage=document.getElementById("uploadMessage");
 
-      if (res.ok) {
-        memorialMessage.style.color = "green";
-        memorialMessage.textContent = "Memorial updated successfully!";
-        memorialForm.reset();
-      } else {
-        memorialMessage.style.color = "red";
-        memorialMessage.textContent = result.error || "Upload failed.";
-      }
-    });
+const creditsForm=document.getElementById("creditsForm");
+const creditsMessage=document.getElementById("creditsMessage");
 
-    /* ================= LOAD BOOKS ================= */
+const memorialForm=document.getElementById("memorialForm");
+const memorialMessage=document.getElementById("memorialMessage");
 
-    async function loadBooks() {
-      const res = await fetch("/books");
-      const books = await res.json();
+const booksList=document.getElementById("booksList");
 
-      booksList.innerHTML = "";
+/* ================= BOOK UPLOAD ================= */
 
-      if (!books.length) {
-        booksList.innerHTML = "<p>No books found.</p>";
-        return;
-      }
+uploadForm.addEventListener("submit",async(e)=>{
 
-      books.forEach(book => {
-        const row = document.createElement("div");
-        row.className = "book-row";
+e.preventDefault();
 
-        row.innerHTML = `
-          <div>
-            <strong>${book.title}</strong>
-            <div style="font-size:12px;color:gray;">
-              Type: ${book.content_type}
-            </div>
-          </div>
-          <button class="delete-btn">Delete</button>
-        `;
+uploadMessage.textContent="Publishing...";
+uploadMessage.style.color="black";
 
-        const deleteBtn = row.querySelector("button");
+const formData=new FormData(uploadForm);
 
-        deleteBtn.onclick = async () => {
-          if (!confirm("Are you sure you want to permanently delete this book?")) return;
+const res=await fetch("/publish",{
+method:"POST",
+body:formData
+});
 
-          const res = await fetch("/books/" + book.id, {
-            method: "DELETE"
-          });
+const result=await res.json();
 
-          if (res.ok) {
-            loadBooks();
-          } else {
-            alert("Delete failed.");
-          }
-        };
+if(res.ok){
+uploadMessage.style.color="green";
+uploadMessage.textContent="Book published successfully!";
+uploadForm.reset();
+loadBooks();
+}else{
+uploadMessage.style.color="red";
+uploadMessage.textContent=result.error||"Publish failed.";
+}
 
-        booksList.appendChild(row);
-      });
-    }
+});
 
-    loadBooks();
-  </script>
+/* ================= CREDITS ================= */
+
+creditsForm.addEventListener("submit",async(e)=>{
+
+e.preventDefault();
+
+creditsMessage.textContent="Uploading...";
+creditsMessage.style.color="black";
+
+const formData=new FormData(creditsForm);
+
+const res=await fetch("/publish-setting/credits",{
+method:"POST",
+body:formData
+});
+
+const result=await res.json();
+
+if(res.ok){
+creditsMessage.style.color="green";
+creditsMessage.textContent="Credits updated successfully!";
+creditsForm.reset();
+}else{
+creditsMessage.style.color="red";
+creditsMessage.textContent=result.error||"Upload failed.";
+}
+
+});
+
+/* ================= MEMORIAL ================= */
+
+memorialForm.addEventListener("submit",async(e)=>{
+
+e.preventDefault();
+
+memorialMessage.textContent="Uploading...";
+memorialMessage.style.color="black";
+
+const formData=new FormData(memorialForm);
+
+const res=await fetch("/publish-setting/memorial",{
+method:"POST",
+body:formData
+});
+
+const result=await res.json();
+
+if(res.ok){
+memorialMessage.style.color="green";
+memorialMessage.textContent="Memorial updated successfully!";
+memorialForm.reset();
+}else{
+memorialMessage.style.color="red";
+memorialMessage.textContent=result.error||"Upload failed.";
+}
+
+});
+
+/* ================= LOAD BOOKS ================= */
+
+async function loadBooks(){
+
+const res=await fetch("/books");
+const books=await res.json();
+
+booksList.innerHTML="";
+
+if(!books.length){
+booksList.innerHTML="<p>No books found.</p>";
+return;
+}
+
+books.forEach(book=>{
+
+const row=document.createElement("div");
+row.className="book-row";
+
+row.innerHTML=`
+<div>
+<strong>${book.title}</strong>
+<div style="font-size:12px;color:gray;">
+Type: ${book.content_type||"html"}
+</div>
+</div>
+<button class="delete-btn">Delete</button>
+`;
+
+row.querySelector("button").onclick=async()=>{
+
+if(!confirm("Delete this book permanently?"))return;
+
+const res=await fetch("/books/"+book.id,{
+method:"DELETE"
+});
+
+if(res.ok)loadBooks();
+else alert("Delete failed.");
+
+};
+
+booksList.appendChild(row);
+
+});
+
+}
+
+loadBooks();
+
+</script>
 
 </body>
 </html>

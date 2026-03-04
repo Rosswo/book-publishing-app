@@ -18,5 +18,15 @@
     "content_path": "book-1772611823260",
     "file_path": null,
     "original_pdf_path": null
+  },
+  {
+    "id": "book-1772612911363",
+    "title": "TEST PDF 2",
+    "description": "",
+    "cover_url": "./books/book-1772612911363/cover",
+    "content_type": "pdf",
+    "content_path": null,
+    "file_path": "book-1772612911363/book.pdf",
+    "original_pdf_path": null
   }
 ]

@@ -1,5 +1,5 @@
 // =============================
-// SETTINGS.JS — Static Version (PDF.js Viewer)
+// SETTINGS.JS — Static Version
 // =============================
 
 function openAppModal(title, contentHTML) {
@@ -42,10 +42,8 @@ async function renderSetting(key, title) {
             let combinedHTML = "";
 
             for (const section of sections) {
-
                 const sectionRes = await fetch(`${basePath}/${section.file}`);
                 combinedHTML += await sectionRes.text();
-
             }
 
             openAppModal(
@@ -65,13 +63,10 @@ async function renderSetting(key, title) {
 
             const pdfPath = `${basePath}/${config.file}`;
 
-            const viewerPath =
-                `/web/viewer.html?file=${encodeURIComponent(pdfPath)}`;
-
             openAppModal(
                 title,
                 `<iframe
-                    src="${viewerPath}"
+                    src="${pdfPath}"
                     style="width:100%; height:85vh; border:none;">
                 </iframe>`
             );
@@ -84,20 +79,17 @@ async function renderSetting(key, title) {
     } catch (err) {
 
         console.error("Settings load error:", err);
-
         openAppModal(title, "<p>Error loading content.</p>");
 
     }
 }
 
 function openAppVersion() {
-
     openAppModal(
         "App Version",
         `<p><strong>Version:</strong> 1.0.0</p>
          <p>This version is manually updated when the client upgrades the application.</p>`
     );
-
 }
 
 function openCredits() {
@@ -109,11 +101,9 @@ function openMemorial() {
 }
 
 function exitApp() {
-
     if (window.close) {
         window.close();
     } else {
         location.reload();
     }
-
 }

@@ -1,5 +1,5 @@
 // =============================
-// SETTINGS.JS — Static Version (Full Parity)
+// SETTINGS.JS — Static Version (Full Parity + Mobile PDF Fix)
 // =============================
 
 function openAppModal(title, contentHTML) {
@@ -32,6 +32,7 @@ async function renderSetting(key, title) {
         if (config.content_type === "html") {
 
             const metaRes = await fetch(`${basePath}/sections.json`);
+
             if (!metaRes.ok) {
                 openAppModal(title, "<p>No content found.</p>");
                 return;
@@ -42,10 +43,10 @@ async function renderSetting(key, title) {
             let combinedHTML = "";
 
             for (const section of sections) {
-                const sectionRes = await fetch(
-                    `${basePath}/${section.file}`
-                );
+
+                const sectionRes = await fetch(`${basePath}/${section.file}`);
                 combinedHTML += await sectionRes.text();
+
             }
 
             openAppModal(
@@ -65,6 +66,15 @@ async function renderSetting(key, title) {
 
             const pdfPath = `${basePath}/${config.file}`;
 
+            const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+
+            // 📱 MOBILE → open native viewer
+            if (isMobile) {
+                window.open(pdfPath, "_blank");
+                return;
+            }
+
+            // 💻 DESKTOP → modal viewer
             openAppModal(
                 title,
                 `<iframe 
@@ -79,17 +89,22 @@ async function renderSetting(key, title) {
         openAppModal(title, "<p>Not configured yet.</p>");
 
     } catch (err) {
+
         console.error("Settings load error:", err);
+
         openAppModal(title, "<p>Error loading content.</p>");
+
     }
 }
 
 function openAppVersion() {
+
     openAppModal(
         "App Version",
         `<p><strong>Version:</strong> 1.0.0</p>
          <p>This version is manually updated when the client upgrades the application.</p>`
     );
+
 }
 
 function openCredits() {
@@ -101,9 +116,11 @@ function openMemorial() {
 }
 
 function exitApp() {
+
     if (window.close) {
         window.close();
     } else {
         location.reload();
     }
+
 }

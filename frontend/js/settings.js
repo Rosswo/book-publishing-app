@@ -16,7 +16,7 @@ async function renderSetting(key, title) {
 
     try {
 
-        const basePath = `./books/settings/${key}`;
+        const basePath = `/books/settings/${key}`;
 
         const configRes = await fetch(`${basePath}/config.json`);
 
@@ -66,7 +66,7 @@ async function renderSetting(key, title) {
             const pdfPath = `${basePath}/${config.file}`;
 
             const viewerPath =
-                `./web/viewer.html?file=${encodeURIComponent(pdfPath)}`;
+                `/web/viewer.html?file=${encodeURIComponent(pdfPath)}`;
 
             openAppModal(
                 title,

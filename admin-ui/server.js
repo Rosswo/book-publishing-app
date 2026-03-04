@@ -320,7 +320,9 @@ app.post("/publish-setting/:key", upload.single("pdf"), (req, res) => {
    Start Server
 ============================ */
 
-app.listen(PORT, async () => {
+app.listen(PORT, () => {
     console.log(`\nAdmin UI running at http://localhost:${PORT}`);
-    await open(`http://localhost:${PORT}`);
 });
+
+const { exec } = require("child_process");
+exec(`start http://localhost:${PORT}`);

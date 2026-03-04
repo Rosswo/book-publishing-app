@@ -77,11 +77,11 @@
     height: calc(100vh - 160px);
     display: flex;
     justify-content: center;
-    align-items: flex-start;
+    align-items: center;
 }
 
 .pdf-frame {
-    width: 100%;
+    width: min(100%, 900px);
     height: 100%;
     border: none;
     background: white;

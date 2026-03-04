@@ -2,13 +2,13 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 34px 28px 20px 28px;
+    padding: 16px 22px 12px 22px;
 }
 
 .library-title {
-    font-size: 26px;
+    font-size: 22px;
     font-weight: 600;
-    letter-spacing: -0.5px;
+    letter-spacing: -0.4px;
 }
 
 .topbar-actions {
@@ -23,7 +23,7 @@
 .library {
     max-width: 1200px;
     margin: auto;
-    padding: 10px 24px 160px 24px;
+    padding: 6px 22px 160px 22px;
 }
 
 /* =========================
@@ -32,7 +32,7 @@
 
 .grid {
     display: grid;
-    gap: 28px;
+    gap: 26px;
 }
 
 /* Ultra Wide Desktop */
@@ -67,6 +67,7 @@
 @media (max-width: 599px) {
     .grid {
         grid-template-columns: repeat(2, 1fr);
+        gap: 20px;
     }
 }
 
@@ -97,6 +98,7 @@
         border-radius: 18px;
         margin-bottom: 12px;
     }
+
 .book-title {
     font-size: 16px;
     font-weight: 600;
@@ -110,6 +112,7 @@
     margin-top: 4px;
     line-height: 1.4;
 }
+
 /* =========================
    BOTTOM TASKBAR
 ========================= */

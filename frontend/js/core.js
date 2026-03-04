@@ -116,7 +116,7 @@ async function openBook(book) {
         document.getElementById("readerContent").innerHTML = `
             <div class="pdf-wrapper">
                 <iframe 
-                    src="${pdfPath}#toolbar=0&view=FitH&zoom=page-width"
+                    src="${pdfPath}#zoom=page-width"
                     class="pdf-frame">
                 </iframe>
             </div>

@@ -1,5 +1,5 @@
 // =============================
-// SETTINGS.JS — Static Version (Full Parity + Mobile PDF Fix)
+// SETTINGS.JS — Static Version (Mobile PDF Fix)
 // =============================
 
 function openAppModal(title, contentHTML) {
@@ -66,21 +66,23 @@ async function renderSetting(key, title) {
 
             const pdfPath = `${basePath}/${config.file}`;
 
-            const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+            const isMobile =
+                /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent) ||
+                window.innerWidth < 768;
 
-            // 📱 MOBILE → open native viewer
+            // Mobile → open native PDF viewer
             if (isMobile) {
-                window.open(pdfPath, "_blank");
+                window.location.href = pdfPath;
                 return;
             }
 
-            // 💻 DESKTOP → modal viewer
+            // Desktop → modal viewer
             openAppModal(
                 title,
-                `<iframe 
-                    src="${pdfPath}#toolbar=0"
+                `<iframe
+                    src="${pdfPath}"
                     style="width:100%; height:75vh; border:none;">
-                 </iframe>`
+                </iframe>`
             );
 
             return;

@@ -1,5 +1,5 @@
 // =============================
-// SETTINGS.JS — Static Version (Mobile PDF Fix)
+// SETTINGS.JS — Static Version (Unified PDF Viewer)
 // =============================
 
 function openAppModal(title, contentHTML) {
@@ -18,7 +18,6 @@ async function renderSetting(key, title) {
 
         const basePath = `./books/settings/${key}`;
 
-        // Load config
         const configRes = await fetch(`${basePath}/config.json`);
 
         if (!configRes.ok) {
@@ -43,10 +42,8 @@ async function renderSetting(key, title) {
             let combinedHTML = "";
 
             for (const section of sections) {
-
                 const sectionRes = await fetch(`${basePath}/${section.file}`);
                 combinedHTML += await sectionRes.text();
-
             }
 
             openAppModal(
@@ -66,22 +63,11 @@ async function renderSetting(key, title) {
 
             const pdfPath = `${basePath}/${config.file}`;
 
-            const isMobile =
-                /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent) ||
-                window.innerWidth < 768;
-
-            // Mobile → open native PDF viewer
-            if (isMobile) {
-                window.location.href = pdfPath;
-                return;
-            }
-
-            // Desktop → modal viewer
             openAppModal(
                 title,
                 `<iframe
-                    src="${pdfPath}"
-                    style="width:100%; height:75vh; border:none;">
+                    src="${pdfPath}#toolbar=0"
+                    style="width:100%; height:80vh; border:none;">
                 </iframe>`
             );
 
@@ -100,13 +86,11 @@ async function renderSetting(key, title) {
 }
 
 function openAppVersion() {
-
     openAppModal(
         "App Version",
         `<p><strong>Version:</strong> 1.0.0</p>
          <p>This version is manually updated when the client upgrades the application.</p>`
     );
-
 }
 
 function openCredits() {
@@ -118,11 +102,9 @@ function openMemorial() {
 }
 
 function exitApp() {
-
     if (window.close) {
         window.close();
     } else {
         location.reload();
     }
-
 }

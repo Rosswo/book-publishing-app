@@ -7,7 +7,7 @@ const { execSync } = require("child_process");
 const open = (...args) =>
     import("open").then(mod => mod.default(...args));
 
-const publishBook = require("../frontend/admin-engine/index");
+const publishEngine = require("../frontend/admin-engine/index");
 
 const app = express();
 const PORT = 3001;
@@ -57,57 +57,84 @@ app.get("/books", (req, res) => {
 });
 
 /* ============================
-   Publish Book
+   Publish Book (DOCX or PDF)
 ============================ */
 
-app.post("/publish",
+app.post(
+    "/publish",
     upload.fields([
         { name: "docx", maxCount: 1 },
+        { name: "book", maxCount: 1 },
         { name: "cover", maxCount: 1 }
     ]),
     async (req, res) => {
 
         let tempDocxPath = null;
+        let tempPdfPath = null;
         let tempCoverPath = null;
 
         try {
 
-            if (!req.files || !req.files.docx) {
-                return res.status(400).json({ error: "No DOCX uploaded." });
-            }
-
-            tempDocxPath = req.files.docx[0].path;
-
-            if (req.files.cover) {
-                tempCoverPath = req.files.cover[0].path;
-            }
-
             const { title, description } = req.body;
 
             if (!title || !title.trim()) {
+                return res.status(400).json({ error: "Title is required." });
+            }
 
-                if (tempDocxPath && fs.existsSync(tempDocxPath)) {
-                    fs.unlinkSync(tempDocxPath);
-                }
+            if (req.files?.docx) {
+                tempDocxPath = req.files.docx[0].path;
+            }
 
-                if (tempCoverPath && fs.existsSync(tempCoverPath)) {
-                    fs.unlinkSync(tempCoverPath);
-                }
+            if (req.files?.book) {
+                tempPdfPath = req.files.book[0].path;
+            }
 
+            if (req.files?.cover) {
+                tempCoverPath = req.files.cover[0].path;
+            }
+
+            if (!tempDocxPath && !tempPdfPath) {
                 return res.status(400).json({
-                    error: "Title is required."
+                    error: "Upload DOCX or PDF."
                 });
             }
 
-            const result = await publishBook({
-                docxPath: tempDocxPath,
-                title: title.trim(),
-                description: description?.trim() || "",
-                coverPath: tempCoverPath
-            });
+            let result;
+
+            /* DOCX Upload */
+
+            if (tempDocxPath) {
+
+                result = await publishEngine.publishBook({
+                    docxPath: tempDocxPath,
+                    title: title.trim(),
+                    description: description?.trim() || "",
+                    coverPath: tempCoverPath
+                });
+
+            }
+
+            /* PDF Upload */
+
+            else if (tempPdfPath) {
+
+                result = publishEngine.publishPdfBook({
+                    pdfPath: tempPdfPath,
+                    title: title.trim(),
+                    description: description?.trim() || "",
+                    coverPath: tempCoverPath
+                });
+
+            }
+
+            /* Cleanup temp files */
 
             if (tempDocxPath && fs.existsSync(tempDocxPath)) {
                 fs.unlinkSync(tempDocxPath);
+            }
+
+            if (tempPdfPath && fs.existsSync(tempPdfPath)) {
+                fs.unlinkSync(tempPdfPath);
             }
 
             if (tempCoverPath && fs.existsSync(tempCoverPath)) {
@@ -123,6 +150,10 @@ app.post("/publish",
 
             if (tempDocxPath && fs.existsSync(tempDocxPath)) {
                 fs.unlinkSync(tempDocxPath);
+            }
+
+            if (tempPdfPath && fs.existsSync(tempPdfPath)) {
+                fs.unlinkSync(tempPdfPath);
             }
 
             if (tempCoverPath && fs.existsSync(tempCoverPath)) {
@@ -201,7 +232,7 @@ app.delete("/books/:id", (req, res) => {
 });
 
 /* ============================
-   Publish Setting PDF (Credits / Memorial)
+   Publish Setting PDF
 ============================ */
 
 app.post("/publish-setting/:key", upload.single("pdf"), (req, res) => {
@@ -228,7 +259,6 @@ app.post("/publish-setting/:key", upload.single("pdf"), (req, res) => {
             fs.mkdirSync(settingsFolder, { recursive: true });
         }
 
-        // Overwrite existing files
         fs.readdirSync(settingsFolder).forEach(file => {
             fs.rmSync(path.join(settingsFolder, file), { force: true });
         });
@@ -248,10 +278,6 @@ app.post("/publish-setting/:key", upload.single("pdf"), (req, res) => {
         );
 
         fs.unlinkSync(req.file.path);
-
-        /* ============================
-           Git Automation
-        ============================ */
 
         const projectRoot = path.resolve(__dirname, "..");
 

@@ -1,15 +1,5 @@
 [
   {
-    "id": "book-1772611823260",
-    "title": "TEST PDF",
-    "description": "",
-    "cover_url": "./books/book-1772611823260/cover",
-    "content_type": "html",
-    "content_path": "book-1772611823260",
-    "file_path": null,
-    "original_pdf_path": null
-  },
-  {
     "id": "book-1772612911363",
     "title": "TEST PDF 2",
     "description": "",

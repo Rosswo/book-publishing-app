@@ -20,16 +20,6 @@
     "original_pdf_path": null
   },
   {
-    "id": "book-he-lehkhabu-in-trlan-atumte-1772681635694",
-    "title": "TEST",
-    "description": "tah hian description",
-    "cover_url": "./books/book-he-lehkhabu-in-trlan-atumte-1772681635694/cover",
-    "content_type": "html",
-    "content_path": "book-he-lehkhabu-in-trlan-atumte-1772681635694",
-    "file_path": null,
-    "original_pdf_path": null
-  },
-  {
     "id": "book-1772704614017",
     "title": "PDF Delete test",
     "description": "",

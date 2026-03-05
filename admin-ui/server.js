@@ -43,18 +43,34 @@ app.get("/", (req, res) => {
 ============================ */
 
 app.get("/books", (req, res) => {
+
     try {
-        const booksPath = path.join(__dirname, "../frontend/books/books.json");
-        const books = JSON.parse(fs.readFileSync(booksPath, "utf8"));
+
+        const booksPath = path.join(
+            __dirname,
+            "../frontend/books/books.json"
+        );
+
+        const books = JSON.parse(
+            fs.readFileSync(booksPath, "utf8")
+        );
+
         res.json(books);
+
     } catch (err) {
+
         console.error(err);
-        res.status(500).json({ error: "Failed to load books." });
+
+        res.status(500).json({
+            error: "Failed to load books."
+        });
+
     }
+
 });
 
 /* ============================
-   Publish Book (DOCX or PDF)
+   Publish Book
 ============================ */
 
 app.post(
@@ -75,20 +91,19 @@ app.post(
             const { title, description } = req.body;
 
             if (!title || !title.trim()) {
-                return res.status(400).json({ error: "Title is required." });
+                return res.status(400).json({
+                    error: "Title is required."
+                });
             }
 
-            if (req.files?.docx) {
+            if (req.files?.docx)
                 tempDocxPath = req.files.docx[0].path;
-            }
 
-            if (req.files?.book) {
+            if (req.files?.book)
                 tempPdfPath = req.files.book[0].path;
-            }
 
-            if (req.files?.cover) {
+            if (req.files?.cover)
                 tempCoverPath = req.files.cover[0].path;
-            }
 
             if (!tempDocxPath && !tempPdfPath) {
                 return res.status(400).json({
@@ -107,7 +122,7 @@ app.post(
                     coverPath: tempCoverPath
                 });
 
-            } else if (tempPdfPath) {
+            } else {
 
                 result = publishEngine.publishPdfBook({
                     pdfPath: tempPdfPath,
@@ -118,17 +133,14 @@ app.post(
 
             }
 
-            if (tempDocxPath && fs.existsSync(tempDocxPath)) {
+            if (tempDocxPath && fs.existsSync(tempDocxPath))
                 fs.unlinkSync(tempDocxPath);
-            }
 
-            if (tempPdfPath && fs.existsSync(tempPdfPath)) {
+            if (tempPdfPath && fs.existsSync(tempPdfPath))
                 fs.unlinkSync(tempPdfPath);
-            }
 
-            if (tempCoverPath && fs.existsSync(tempCoverPath)) {
+            if (tempCoverPath && fs.existsSync(tempCoverPath))
                 fs.unlinkSync(tempCoverPath);
-            }
 
             res.json({
                 success: true,
@@ -137,24 +149,14 @@ app.post(
 
         } catch (err) {
 
-            if (tempDocxPath && fs.existsSync(tempDocxPath)) {
-                fs.unlinkSync(tempDocxPath);
-            }
-
-            if (tempPdfPath && fs.existsSync(tempPdfPath)) {
-                fs.unlinkSync(tempPdfPath);
-            }
-
-            if (tempCoverPath && fs.existsSync(tempCoverPath)) {
-                fs.unlinkSync(tempCoverPath);
-            }
-
             console.error(err);
 
             res.status(500).json({
                 error: err.message || "Publishing failed."
             });
+
         }
+
     }
 );
 
@@ -164,31 +166,58 @@ app.post(
 
 app.delete("/books/:id", (req, res) => {
 
-    const bookId = req.params.id;
+    const bookId = req.params.id.trim();
+
+    console.log("Deleting book:", bookId);
 
     try {
 
-        const booksPath = path.join(__dirname, "../frontend/books/books.json");
-        const booksRoot = path.join(__dirname, "../frontend/books");
+        const booksPath = path.join(
+            __dirname,
+            "../frontend/books/books.json"
+        );
 
-        const books = JSON.parse(fs.readFileSync(booksPath, "utf8"));
+        const booksRoot = path.join(
+            __dirname,
+            "../frontend/books"
+        );
 
-        const bookIndex = books.findIndex(b => b.id === bookId);
+        const books = JSON.parse(
+            fs.readFileSync(booksPath, "utf8")
+        );
+
+        const bookIndex = books.findIndex(
+            b => b.id === bookId
+        );
 
         if (bookIndex === -1) {
-            return res.status(404).json({ error: "Book not found." });
+            return res.status(404).json({
+                error: "Book not found."
+            });
         }
 
         const book = books[bookIndex];
 
-        const bookFolder = path.join(booksRoot, book.id);
+        const bookFolder = path.join(
+            booksRoot,
+            book.id
+        );
 
-        // Safe delete (folder might already be gone)
+        /* DELETE FOLDER */
+
         if (fs.existsSync(bookFolder)) {
-            fs.rmSync(bookFolder, { recursive: true, force: true });
+
+            fs.rmSync(bookFolder, {
+                recursive: true,
+                force: true
+            });
+
+            console.log("Folder deleted:", bookFolder);
+
         }
 
-        // Remove from books.json
+        /* REMOVE FROM JSON */
+
         books.splice(bookIndex, 1);
 
         fs.writeFileSync(
@@ -197,23 +226,41 @@ app.delete("/books/:id", (req, res) => {
             "utf8"
         );
 
-        const projectRoot = path.resolve(__dirname, "..");
+        console.log("books.json updated");
 
-        execSync("git add .", { cwd: projectRoot });
+        /* GIT AUTOMATION (SAFE) */
 
-        const status = execSync("git status --porcelain", {
-            cwd: projectRoot
-        }).toString();
+        try {
 
-        if (status.trim()) {
+            const projectRoot = path.resolve(__dirname, "..");
 
-            execSync(`git commit -m "Delete: ${book.title}"`, {
-                cwd: projectRoot
-            });
+            execSync("git add .", { cwd: projectRoot });
 
-            execSync("git push", {
-                cwd: projectRoot
-            });
+            const status = execSync(
+                "git status --porcelain",
+                { cwd: projectRoot }
+            ).toString();
+
+            if (status.trim()) {
+
+                execSync(
+                    `git commit -m "Delete: ${book.title}"`,
+                    { cwd: projectRoot }
+                );
+
+                execSync(
+                    "git push",
+                    { cwd: projectRoot }
+                );
+
+                console.log("Git push complete");
+
+            }
+
+        } catch (gitErr) {
+
+            console.warn("Git failed but delete succeeded");
+
         }
 
         res.json({ success: true });
@@ -222,100 +269,93 @@ app.delete("/books/:id", (req, res) => {
 
         console.error("Delete error:", err);
 
-        res.status(500).json({ error: "Delete failed." });
+        res.status(500).json({
+            error: "Delete failed."
+        });
+
     }
+
 });
 
 /* ============================
    Publish Setting PDF
 ============================ */
 
-app.post("/publish-setting/:key", upload.single("pdf"), (req, res) => {
+app.post(
+    "/publish-setting/:key",
+    upload.single("pdf"),
+    (req, res) => {
 
-    const key = req.params.key;
+        const key = req.params.key;
 
-    if (!["credits", "memorial"].includes(key)) {
-        return res.status(400).json({ error: "Invalid setting key." });
-    }
+        if (!["credits", "memorial"].includes(key)) {
+            return res.status(400).json({
+                error: "Invalid setting key."
+            });
+        }
 
-    if (!req.file) {
-        return res.status(400).json({ error: "No PDF uploaded." });
-    }
+        if (!req.file) {
+            return res.status(400).json({
+                error: "No PDF uploaded."
+            });
+        }
 
-    try {
+        try {
 
-        const settingsFolder = path.join(
-            __dirname,
-            "../frontend/books/settings",
-            key
-        );
+            const settingsFolder = path.join(
+                __dirname,
+                "../frontend/books/settings",
+                key
+            );
 
-        if (!fs.existsSync(settingsFolder)) {
             fs.mkdirSync(settingsFolder, { recursive: true });
-        }
 
-        fs.readdirSync(settingsFolder).forEach(file => {
-            fs.rmSync(path.join(settingsFolder, file), { force: true });
-        });
-
-        const finalFileName = `${key}.pdf`;
-        const finalPath = path.join(settingsFolder, finalFileName);
-
-        fs.copyFileSync(req.file.path, finalPath);
-
-        fs.writeFileSync(
-            path.join(settingsFolder, "config.json"),
-            JSON.stringify({
-                content_type: "pdf",
-                file: finalFileName
-            }, null, 2),
-            "utf8"
-        );
-
-        fs.unlinkSync(req.file.path);
-
-        const projectRoot = path.resolve(__dirname, "..");
-
-        execSync("git add .", { cwd: projectRoot });
-
-        const status = execSync("git status --porcelain", {
-            cwd: projectRoot
-        }).toString();
-
-        if (status.trim()) {
-
-            execSync(`git commit -m "Update setting: ${key}"`, {
-                cwd: projectRoot
+            fs.readdirSync(settingsFolder).forEach(file => {
+                fs.rmSync(
+                    path.join(settingsFolder, file),
+                    { force: true }
+                );
             });
 
-            execSync("git push", {
-                cwd: projectRoot
-            });
-        }
+            const finalFileName = `${key}.pdf`;
 
-        res.json({ success: true });
+            const finalPath = path.join(
+                settingsFolder,
+                finalFileName
+            );
 
-    } catch (err) {
+            fs.copyFileSync(req.file.path, finalPath);
 
-        if (req.file && fs.existsSync(req.file.path)) {
+            fs.writeFileSync(
+                path.join(settingsFolder, "config.json"),
+                JSON.stringify({
+                    content_type: "pdf",
+                    file: finalFileName
+                }, null, 2),
+                "utf8"
+            );
+
             fs.unlinkSync(req.file.path);
+
+            res.json({ success: true });
+
+        } catch (err) {
+
+            console.error(err);
+
+            res.status(500).json({
+                error: err.message || "Upload failed."
+            });
+
         }
 
-        console.error(err);
-
-        res.status(500).json({
-            error: err.message || "Upload failed."
-        });
     }
-});
+);
 
 /* ============================
    Start Server
 ============================ */
 
-app.listen(PORT, () => {
-    console.log(`\nAdmin UI running at http://localhost:${PORT}`);
+const server = app.listen(PORT, () => {
+console.log(`Admin UI running at http://localhost:${PORT}`);
 });
-
-const { exec } = require("child_process");
-exec(`start http://localhost:${PORT}`);

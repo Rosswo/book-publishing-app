@@ -101,8 +101,6 @@ app.post(
 
             let result;
 
-            /* DOCX Upload */
-
             if (tempDocxPath) {
 
                 result = await publishEngine.publishBook({
@@ -112,11 +110,7 @@ app.post(
                     coverPath: tempCoverPath
                 });
 
-            }
-
-            /* PDF Upload */
-
-            else if (tempPdfPath) {
+            } else if (tempPdfPath) {
 
                 result = publishEngine.publishPdfBook({
                     pdfPath: tempPdfPath,
@@ -126,8 +120,6 @@ app.post(
                 });
 
             }
-
-            /* Cleanup temp files */
 
             if (tempDocxPath && fs.existsSync(tempDocxPath)) {
                 fs.unlinkSync(tempDocxPath);
@@ -170,7 +162,7 @@ app.post(
 );
 
 /* ============================
-   DELETE Book
+   DELETE Book (HTML + PDF FIX)
 ============================ */
 
 app.delete("/books/:id", (req, res) => {
@@ -192,9 +184,18 @@ app.delete("/books/:id", (req, res) => {
 
         const book = books[bookIndex];
 
-        const bookFolder = path.join(booksRoot, book.content_path);
+        let bookFolder = null;
 
-        if (fs.existsSync(bookFolder)) {
+        if (book.content_type === "html" && book.content_path) {
+            bookFolder = path.join(booksRoot, book.content_path);
+        }
+
+        else if (book.content_type === "pdf" && book.file_path) {
+            const folder = book.file_path.split("/")[0];
+            bookFolder = path.join(booksRoot, folder);
+        }
+
+        if (bookFolder && fs.existsSync(bookFolder)) {
             fs.rmSync(bookFolder, { recursive: true, force: true });
         }
 

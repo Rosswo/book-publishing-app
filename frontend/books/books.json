@@ -28,5 +28,15 @@
     "content_path": "book-he-lehkhabu-in-trlan-atumte-1772681635694",
     "file_path": null,
     "original_pdf_path": null
+  },
+  {
+    "id": "book-1772704614017",
+    "title": "PDF Delete test",
+    "description": "",
+    "cover_url": "./books/book-1772704614017/cover",
+    "content_type": "pdf",
+    "content_path": null,
+    "file_path": "book-1772704614017/book.pdf",
+    "original_pdf_path": null
   }
 ]

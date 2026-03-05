@@ -4,9 +4,6 @@ const multer = require("multer");
 const fs = require("fs");
 const { execSync } = require("child_process");
 
-const open = (...args) =>
-    import("open").then(mod => mod.default(...args));
-
 const publishEngine = require("../frontend/admin-engine/index");
 
 const app = express();
@@ -161,6 +158,10 @@ app.post(
     }
 );
 
+/* ============================
+   DELETE Book
+============================ */
+
 app.delete("/books/:id", (req, res) => {
 
     const bookId = req.params.id;
@@ -180,21 +181,14 @@ app.delete("/books/:id", (req, res) => {
 
         const book = books[bookIndex];
 
-        let bookFolder = null;
+        const bookFolder = path.join(booksRoot, book.id);
 
-        if (book.content_type === "html" && book.content_path) {
-            bookFolder = path.join(booksRoot, book.content_path);
-        }
-
-        else if (book.content_type === "pdf" && book.file_path) {
-            const folder = book.file_path.split("/")[0];
-            bookFolder = path.join(booksRoot, folder);
-        }
-
-        if (bookFolder && fs.existsSync(bookFolder)) {
+        // Safe delete (folder might already be gone)
+        if (fs.existsSync(bookFolder)) {
             fs.rmSync(bookFolder, { recursive: true, force: true });
         }
 
+        // Remove from books.json
         books.splice(bookIndex, 1);
 
         fs.writeFileSync(
@@ -203,37 +197,23 @@ app.delete("/books/:id", (req, res) => {
             "utf8"
         );
 
-        /* =========================
-           Git Automation (Safe)
-        ========================= */
-
         const projectRoot = path.resolve(__dirname, "..");
 
-        try {
+        execSync("git add .", { cwd: projectRoot });
 
-            execSync("git add .", { cwd: projectRoot });
+        const status = execSync("git status --porcelain", {
+            cwd: projectRoot
+        }).toString();
 
-            const status = execSync(
-                "git status --porcelain",
-                { cwd: projectRoot }
-            ).toString();
+        if (status.trim()) {
 
-            if (status.trim()) {
+            execSync(`git commit -m "Delete: ${book.title}"`, {
+                cwd: projectRoot
+            });
 
-                execSync(`git commit -m "Delete: ${book.title}"`, {
-                    cwd: projectRoot
-                });
-
-                execSync("git push", {
-                    cwd: projectRoot
-                });
-            }
-
-        } catch (gitErr) {
-
-            console.error("Git automation failed:", gitErr.message);
-
-            // do NOT fail deletion if git fails
+            execSync("git push", {
+                cwd: projectRoot
+            });
         }
 
         res.json({ success: true });
@@ -242,9 +222,10 @@ app.delete("/books/:id", (req, res) => {
 
         console.error("Delete error:", err);
 
-        res.status(500).json({ error: err.message || "Delete failed." });
+        res.status(500).json({ error: "Delete failed." });
     }
 });
+
 /* ============================
    Publish Setting PDF
 ============================ */
@@ -304,13 +285,11 @@ app.post("/publish-setting/:key", upload.single("pdf"), (req, res) => {
         if (status.trim()) {
 
             execSync(`git commit -m "Update setting: ${key}"`, {
-                cwd: projectRoot,
-                stdio: "inherit"
+                cwd: projectRoot
             });
 
             execSync("git push", {
-                cwd: projectRoot,
-                stdio: "inherit"
+                cwd: projectRoot
             });
         }
 

@@ -161,10 +161,6 @@ app.post(
     }
 );
 
-/* ============================
-   DELETE Book (HTML + PDF FIX)
-============================ */
-
 app.delete("/books/:id", (req, res) => {
 
     const bookId = req.params.id;
@@ -201,37 +197,54 @@ app.delete("/books/:id", (req, res) => {
 
         books.splice(bookIndex, 1);
 
-        fs.writeFileSync(booksPath, JSON.stringify(books, null, 2), "utf8");
+        fs.writeFileSync(
+            booksPath,
+            JSON.stringify(books, null, 2),
+            "utf8"
+        );
+
+        /* =========================
+           Git Automation (Safe)
+        ========================= */
 
         const projectRoot = path.resolve(__dirname, "..");
 
-        execSync("git add .", { cwd: projectRoot });
+        try {
 
-        const status = execSync("git status --porcelain", {
-            cwd: projectRoot
-        }).toString();
+            execSync("git add .", { cwd: projectRoot });
 
-        if (status.trim()) {
+            const status = execSync(
+                "git status --porcelain",
+                { cwd: projectRoot }
+            ).toString();
 
-            execSync(`git commit -m "Delete: ${book.title}"`, {
-                cwd: projectRoot,
-                stdio: "inherit"
-            });
+            if (status.trim()) {
 
-            execSync("git push", {
-                cwd: projectRoot,
-                stdio: "inherit"
-            });
+                execSync(`git commit -m "Delete: ${book.title}"`, {
+                    cwd: projectRoot
+                });
+
+                execSync("git push", {
+                    cwd: projectRoot
+                });
+            }
+
+        } catch (gitErr) {
+
+            console.error("Git automation failed:", gitErr.message);
+
+            // do NOT fail deletion if git fails
         }
 
         res.json({ success: true });
 
     } catch (err) {
-        console.error(err);
-        res.status(500).json({ error: "Delete failed." });
+
+        console.error("Delete error:", err);
+
+        res.status(500).json({ error: err.message || "Delete failed." });
     }
 });
-
 /* ============================
    Publish Setting PDF
 ============================ */

@@ -8,5 +8,15 @@
     "content_path": "book-he-lehkhabu-in-trlan-atumte-1772708478956",
     "file_path": null,
     "original_pdf_path": null
+  },
+  {
+    "id": "book-1772796339909",
+    "title": "tEST pdf",
+    "description": "",
+    "cover_url": "",
+    "content_type": "pdf",
+    "content_path": null,
+    "file_path": "book-1772796339909/book.pdf",
+    "original_pdf_path": null
   }
 ]

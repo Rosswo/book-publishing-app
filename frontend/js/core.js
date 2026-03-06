@@ -121,13 +121,23 @@ async function openBook(book) {
             </div>
         `;
 
-        renderPdfToCanvas(pdfPath, "pdfCanvasContainer");
+        await renderPdfToCanvas(pdfPath, "pdfCanvasContainer");
     }
 }
 
 /* =========================
-   PDF.js Renderer
+   PDF.js Renderer (Local Build)
 ========================= */
+
+let _pdfjsLib = null;
+
+async function getPdfjsLib() {
+    if (_pdfjsLib) return _pdfjsLib;
+    const mod = await import("/build/pdf.mjs");
+    mod.GlobalWorkerOptions.workerSrc = "/build/pdf.worker.mjs";
+    _pdfjsLib = mod;
+    return _pdfjsLib;
+}
 
 async function renderPdfToCanvas(pdfUrl, containerId) {
 
@@ -135,28 +145,21 @@ async function renderPdfToCanvas(pdfUrl, containerId) {
     if (!container) return;
 
     try {
-        // Load PDF.js from CDN if not already loaded
-        if (!window.pdfjsLib) {
-            await loadScript("https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js");
-            window.pdfjsLib.GlobalWorkerOptions.workerSrc =
-                "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
-        }
+        const pdfjsLib = await getPdfjsLib();
 
-        const loadingTask = window.pdfjsLib.getDocument(pdfUrl);
+        const loadingTask = pdfjsLib.getDocument(pdfUrl);
         const pdf = await loadingTask.promise;
 
         container.innerHTML = "";
 
-        const devicePixelRatio = window.devicePixelRatio || 1;
         const viewportWidth = container.clientWidth || window.innerWidth;
 
         for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
 
             const page = await pdf.getPage(pageNum);
 
-            // Scale to fit container width
             const unscaledViewport = page.getViewport({ scale: 1 });
-            const scale = (viewportWidth / unscaledViewport.width) * devicePixelRatio;
+            const scale = viewportWidth / unscaledViewport.width;
             const viewport = page.getViewport({ scale });
 
             const canvas = document.createElement("canvas");
@@ -179,19 +182,9 @@ async function renderPdfToCanvas(pdfUrl, containerId) {
     }
 }
 
-function loadScript(src) {
-    return new Promise((resolve, reject) => {
-        if (document.querySelector(`script[src="${src}"]`)) {
-            resolve();
-            return;
-        }
-        const script = document.createElement("script");
-        script.src = src;
-        script.onload = resolve;
-        script.onerror = reject;
-        document.head.appendChild(script);
-    });
-}
+/* =========================
+   Section Loading
+========================= */
 
 async function loadSection(savedScroll = 0) {
 

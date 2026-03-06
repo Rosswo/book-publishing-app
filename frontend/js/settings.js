@@ -70,9 +70,8 @@ async function renderSetting(key, title) {
                 </div>`
             );
 
-            // Wait for DOM to update then render
-            requestAnimationFrame(() => {
-                renderSettingsPdf(pdfPath, "settingsPdfContainer");
+            requestAnimationFrame(async () => {
+                await renderPdfToCanvas(pdfPath, "settingsPdfContainer");
             });
 
             return;
@@ -86,75 +85,6 @@ async function renderSetting(key, title) {
         openAppModal(title, "<p>Error loading content.</p>");
 
     }
-}
-
-async function renderSettingsPdf(pdfUrl, containerId) {
-
-    const container = document.getElementById(containerId);
-    if (!container) return;
-
-    try {
-        // Reuse renderPdfToCanvas from core.js if available, otherwise load PDF.js
-        if (typeof renderPdfToCanvas === "function") {
-            await renderPdfToCanvas(pdfUrl, containerId);
-            return;
-        }
-
-        // Fallback: load PDF.js independently
-        if (!window.pdfjsLib) {
-            await loadScript("https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js");
-            window.pdfjsLib.GlobalWorkerOptions.workerSrc =
-                "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
-        }
-
-        const loadingTask = window.pdfjsLib.getDocument(pdfUrl);
-        const pdf = await loadingTask.promise;
-
-        container.innerHTML = "";
-
-        const devicePixelRatio = window.devicePixelRatio || 1;
-        const viewportWidth = container.clientWidth || window.innerWidth;
-
-        for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
-
-            const page = await pdf.getPage(pageNum);
-
-            const unscaledViewport = page.getViewport({ scale: 1 });
-            const scale = (viewportWidth / unscaledViewport.width) * devicePixelRatio;
-            const viewport = page.getViewport({ scale });
-
-            const canvas = document.createElement("canvas");
-            canvas.width = viewport.width;
-            canvas.height = viewport.height;
-            canvas.style.width = "100%";
-            canvas.style.display = "block";
-            canvas.style.marginBottom = "8px";
-            canvas.style.borderRadius = "4px";
-
-            container.appendChild(canvas);
-
-            const ctx = canvas.getContext("2d");
-            await page.render({ canvasContext: ctx, viewport }).promise;
-        }
-
-    } catch (err) {
-        console.error("Settings PDF render error:", err);
-        container.innerHTML = `<p style="color:red; padding:20px;">Failed to load PDF.</p>`;
-    }
-}
-
-function loadScript(src) {
-    return new Promise((resolve, reject) => {
-        if (document.querySelector(`script[src="${src}"]`)) {
-            resolve();
-            return;
-        }
-        const script = document.createElement("script");
-        script.src = src;
-        script.onload = resolve;
-        script.onerror = reject;
-        document.head.appendChild(script);
-    });
 }
 
 function openAppVersion() {

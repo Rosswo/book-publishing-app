@@ -104,9 +104,13 @@ function openMemorial() {
 }
 
 function exitApp() {
-    if (window.close) {
-        window.close();
-    } else {
-        location.reload();
+    const closed = window.close();
+    if (typeof closed === "undefined") {
+        openAppModal(
+            "Exit App",
+            `<p style="text-align:center; padding: 20px 0;">
+                Press your device's <strong>Back button</strong> or <strong>Home button</strong> to exit.
+            </p>`
+        );
     }
 }

@@ -104,13 +104,9 @@ function openMemorial() {
 }
 
 function exitApp() {
-    const closed = window.close();
-    if (typeof closed === "undefined") {
-        openAppModal(
-            "Exit App",
-            `<p style="text-align:center; padding: 20px 0;">
-                Press your device's <strong>Back button</strong> or <strong>Home button</strong> to exit.
-            </p>`
-        );
+    if (window.AndroidBridge) {
+        window.AndroidBridge.exitApp();
+    } else {
+        window.close();
     }
 }

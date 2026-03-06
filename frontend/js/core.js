@@ -126,18 +126,9 @@ async function openBook(book) {
 }
 
 /* =========================
-   PDF.js Renderer (Local Build)
+   PDF.js Renderer
+   Uses window.pdfjsLib loaded via <script> tag in index.html
 ========================= */
-
-let _pdfjsLib = null;
-
-async function getPdfjsLib() {
-    if (_pdfjsLib) return _pdfjsLib;
-    const mod = await import("/build/pdf.mjs");
-    mod.GlobalWorkerOptions.workerSrc = "/build/pdf.worker.mjs";
-    _pdfjsLib = mod;
-    return _pdfjsLib;
-}
 
 async function renderPdfToCanvas(pdfUrl, containerId) {
 
@@ -145,7 +136,12 @@ async function renderPdfToCanvas(pdfUrl, containerId) {
     if (!container) return;
 
     try {
-        const pdfjsLib = await getPdfjsLib();
+        const pdfjsLib = window.pdfjsLib;
+
+        if (!pdfjsLib) {
+            container.innerHTML = `<p style="color:red; padding:20px;">PDF library not loaded.</p>`;
+            return;
+        }
 
         const loadingTask = pdfjsLib.getDocument(pdfUrl);
         const pdf = await loadingTask.promise;

@@ -115,13 +115,82 @@ async function openBook(book) {
 
         document.getElementById("readerContent").innerHTML = `
             <div class="pdf-wrapper">
-                <iframe 
-                    src="${pdfPath}#zoom=page-width"
-                    class="pdf-frame">
-                </iframe>
+                <div id="pdfCanvasContainer" class="pdf-canvas-container">
+                    <p style="color:var(--text-muted); padding:20px; text-align:center;">Loading PDF...</p>
+                </div>
             </div>
         `;
+
+        renderPdfToCanvas(pdfPath, "pdfCanvasContainer");
     }
+}
+
+/* =========================
+   PDF.js Renderer
+========================= */
+
+async function renderPdfToCanvas(pdfUrl, containerId) {
+
+    const container = document.getElementById(containerId);
+    if (!container) return;
+
+    try {
+        // Load PDF.js from CDN if not already loaded
+        if (!window.pdfjsLib) {
+            await loadScript("https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js");
+            window.pdfjsLib.GlobalWorkerOptions.workerSrc =
+                "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+        }
+
+        const loadingTask = window.pdfjsLib.getDocument(pdfUrl);
+        const pdf = await loadingTask.promise;
+
+        container.innerHTML = "";
+
+        const devicePixelRatio = window.devicePixelRatio || 1;
+        const viewportWidth = container.clientWidth || window.innerWidth;
+
+        for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+
+            const page = await pdf.getPage(pageNum);
+
+            // Scale to fit container width
+            const unscaledViewport = page.getViewport({ scale: 1 });
+            const scale = (viewportWidth / unscaledViewport.width) * devicePixelRatio;
+            const viewport = page.getViewport({ scale });
+
+            const canvas = document.createElement("canvas");
+            canvas.width = viewport.width;
+            canvas.height = viewport.height;
+            canvas.style.width = "100%";
+            canvas.style.display = "block";
+            canvas.style.marginBottom = "8px";
+            canvas.style.borderRadius = "4px";
+
+            container.appendChild(canvas);
+
+            const ctx = canvas.getContext("2d");
+            await page.render({ canvasContext: ctx, viewport }).promise;
+        }
+
+    } catch (err) {
+        console.error("PDF render error:", err);
+        container.innerHTML = `<p style="color:red; padding:20px;">Failed to load PDF.</p>`;
+    }
+}
+
+function loadScript(src) {
+    return new Promise((resolve, reject) => {
+        if (document.querySelector(`script[src="${src}"]`)) {
+            resolve();
+            return;
+        }
+        const script = document.createElement("script");
+        script.src = src;
+        script.onload = resolve;
+        script.onerror = reject;
+        document.head.appendChild(script);
+    });
 }
 
 async function loadSection(savedScroll = 0) {

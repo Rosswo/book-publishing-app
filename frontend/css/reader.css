@@ -69,28 +69,26 @@
 }
 
 /* ============================= */
-/* PDF VIEWER (FIXED SCALE) */
+/* PDF VIEWER (PDF.js Canvas) */
 /* ============================= */
 
 .pdf-wrapper {
     width: 100%;
-    height: calc(100vh - 160px);
-    display: flex;
-    justify-content: center;
-    align-items: flex-start;
-    overflow: auto;
+    padding: 0 8px;
+    box-sizing: border-box;
 }
 
-.pdf-frame {
-    width: 900px;
-    height: 100%;
-    border: none;
-    background: white;
-    border-radius: 8px;
-    /* enlarge PDF viewer */
-    transform: scale(1.6);
-    transform-origin: top center;
+.pdf-canvas-container {
+    width: 100%;
+    box-sizing: border-box;
 }
+
+    .pdf-canvas-container canvas {
+        width: 100% !important;
+        display: block;
+        margin-bottom: 8px;
+        border-radius: 4px;
+    }
 
 /* ============================= */
 /* BOOK CONTENT CARD */
@@ -327,10 +325,6 @@
     }
 
     .pdf-wrapper {
-        height: calc(100vh - 120px);
-    }
-
-    .pdf-frame {
-        transform: scale(2.1);
+        padding: 0 4px;
     }
 }

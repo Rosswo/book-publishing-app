@@ -127,7 +127,8 @@ async function openBook(book) {
 
 /* =========================
    PDF.js Renderer
-   Uses window.pdfjsLib loaded via <script> tag in index.html
+   FIX 4: Uses devicePixelRatio for sharp rendering on high-DPI screens (Android/iOS)
+   Renders canvas at 2x or 3x physical pixels, CSS scales it back down = crisp text
 ========================= */
 
 async function renderPdfToCanvas(pdfUrl, containerId) {
@@ -148,20 +149,31 @@ async function renderPdfToCanvas(pdfUrl, containerId) {
 
         container.innerHTML = "";
 
-        const viewportWidth = container.clientWidth || window.innerWidth;
+        // Device pixel ratio: 2 on most phones, 3 on high-end — makes PDFs sharp
+        const dpr = window.devicePixelRatio || 1;
+        const cssWidth = container.clientWidth || window.innerWidth;
 
         for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
 
             const page = await pdf.getPage(pageNum);
 
             const unscaledViewport = page.getViewport({ scale: 1 });
-            const scale = viewportWidth / unscaledViewport.width;
-            const viewport = page.getViewport({ scale });
+
+            // Scale to fill container width at full device resolution
+            const cssScale = cssWidth / unscaledViewport.width;
+            const renderScale = cssScale * dpr;
+
+            const viewport = page.getViewport({ scale: renderScale });
 
             const canvas = document.createElement("canvas");
+
+            // Canvas pixel size = full DPI resolution (sharp)
             canvas.width = viewport.width;
             canvas.height = viewport.height;
-            canvas.style.width = "100%";
+
+            // CSS display size = normal layout size (scales back down cleanly)
+            canvas.style.width = cssWidth + "px";
+            canvas.style.height = Math.floor(unscaledViewport.height * cssScale) + "px";
             canvas.style.display = "block";
             canvas.style.marginBottom = "8px";
             canvas.style.borderRadius = "4px";

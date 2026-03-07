@@ -234,6 +234,17 @@ app.delete("/books/:id", (req, res) => {
 
             const projectRoot = path.resolve(__dirname, "..");
 
+            // FIX 5: Pull before push — prevents conflict if two admins publish at the same time
+            try {
+                execSync("git pull --rebase origin main", {
+                    cwd: projectRoot,
+                    stdio: "pipe"
+                });
+                console.log("Git pull complete");
+            } catch (pullErr) {
+                console.warn("Git pull warning (non-fatal):", pullErr.message);
+            }
+
             execSync("git add .", { cwd: projectRoot });
 
             const status = execSync(
@@ -337,6 +348,47 @@ app.post(
 
             fs.unlinkSync(req.file.path);
 
+            /* GIT AUTOMATION — deploy to Cloudflare */
+
+            try {
+
+                const projectRoot = path.resolve(__dirname, "..");
+
+                // Pull first to avoid conflict with other admin
+                try {
+                    execSync("git pull --rebase origin main", {
+                        cwd: projectRoot,
+                        stdio: "pipe"
+                    });
+                    console.log("Git pull complete");
+                } catch (pullErr) {
+                    console.warn("Git pull warning (non-fatal):", pullErr.message);
+                }
+
+                execSync("git add .", { cwd: projectRoot });
+
+                const status = execSync(
+                    "git status --porcelain",
+                    { cwd: projectRoot }
+                ).toString();
+
+                if (status.trim()) {
+
+                    execSync(
+                        `git commit -m "Update setting: ${key}"`,
+                        { cwd: projectRoot }
+                    );
+
+                    execSync("git push", { cwd: projectRoot });
+
+                    console.log("Git push complete for setting:", key);
+
+                }
+
+            } catch (gitErr) {
+                console.warn("Git failed but setting upload succeeded:", gitErr.message);
+            }
+
             res.json({ success: true });
 
         } catch (err) {
@@ -357,5 +409,5 @@ app.post(
 ============================ */
 
 const server = app.listen(PORT, () => {
-console.log(`Admin UI running at http://localhost:${PORT}`);
+    console.log(`Admin UI running at http://localhost:${PORT}`);
 });

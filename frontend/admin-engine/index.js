@@ -166,6 +166,17 @@ function runGit(title) {
 
     try {
 
+        // FIX 5: Pull before push — prevents conflict if two admins publish at the same time
+        try {
+            execSync("git pull --rebase origin main", {
+                cwd: projectRoot,
+                stdio: "pipe"
+            });
+            success("Git pull complete.");
+        } catch (pullErr) {
+            console.warn("Git pull warning (non-fatal):", pullErr.message);
+        }
+
         execSync("git add .", { cwd: projectRoot });
 
         const status = execSync(

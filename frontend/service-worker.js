@@ -1,8 +1,12 @@
 // =====================================
-// SERVICE WORKER — Branch 8 (Safe Dynamic Support)
+// SERVICE WORKER — Branch 9 (Network-First Shell)
 // =====================================
+// FIX 3: Shell files now use network-first strategy.
+// When online → always fetches fresh JS/CSS/HTML from server.
+// When offline → falls back to cache.
+// This means APK users always see updates without clearing data.
 
-const CACHE_VERSION = "v2";
+const CACHE_VERSION = "v3";
 const SHELL_CACHE = `bookapp-shell-${CACHE_VERSION}`;
 const DYNAMIC_CACHE = `bookapp-dynamic-${CACHE_VERSION}`;
 
@@ -20,7 +24,7 @@ const SHELL_FILES = [
     "/js/app.js"
 ];
 
-// INSTALL
+// INSTALL — pre-cache shell files
 self.addEventListener("install", (event) => {
     event.waitUntil(
         caches.open(SHELL_CACHE).then((cache) => {
@@ -30,7 +34,7 @@ self.addEventListener("install", (event) => {
     self.skipWaiting();
 });
 
-// ACTIVATE
+// ACTIVATE — delete any caches from old versions
 self.addEventListener("activate", (event) => {
     event.waitUntil(
         caches.keys().then((keys) =>
@@ -48,7 +52,7 @@ self.addEventListener("activate", (event) => {
 self.addEventListener("fetch", (event) => {
     const request = event.request;
 
-    // 🔹 Network-first for /books/
+    // Books content: network-first (always get latest published content)
     if (request.url.includes("/books/")) {
         event.respondWith(
             fetch(request)
@@ -58,14 +62,29 @@ self.addEventListener("fetch", (event) => {
                         return response;
                     });
                 })
-                .catch(() => {
-                    return caches.match(request);
-                })
+                .catch(() => caches.match(request))
         );
         return;
     }
 
-    // 🔹 Cache-first for shell
+    // Shell files (JS, CSS, HTML): network-first so updates always apply
+    // Falls back to cache if offline
+    const isShell = SHELL_FILES.some((path) => request.url.endsWith(path));
+    if (isShell) {
+        event.respondWith(
+            fetch(request)
+                .then((response) => {
+                    return caches.open(SHELL_CACHE).then((cache) => {
+                        cache.put(request, response.clone());
+                        return response;
+                    });
+                })
+                .catch(() => caches.match(request))
+        );
+        return;
+    }
+
+    // Everything else: cache-first (icons, fonts, CDN assets)
     event.respondWith(
         caches.match(request).then((cached) => {
             return cached || fetch(request);

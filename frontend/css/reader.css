@@ -64,8 +64,10 @@
 .reader-content {
     flex: 1;
     overflow-y: auto;
-    overflow-x: hidden;
+    overflow-x: auto;
     padding: 120px 20px 120px 20px;
+    /* IMPORTANT: allow pinch zoom */
+    touch-action: pan-x pan-y pinch-zoom;
 }
 
 /* ============================= */

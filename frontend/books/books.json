@@ -18,15 +18,5 @@
     "content_path": null,
     "file_path": "book-1772796339909/book.pdf",
     "original_pdf_path": null
-  },
-  {
-    "id": "book-document-1772873482243",
-    "title": "TEst 2",
-    "description": "",
-    "cover_url": "./books/book-document-1772873482243/cover",
-    "content_type": "html",
-    "content_path": "book-document-1772873482243",
-    "file_path": null,
-    "original_pdf_path": null
   }
 ]

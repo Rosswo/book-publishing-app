@@ -4,7 +4,53 @@ backend/node_modules/
 uploads/
 backend/uploads/
 
+worker/# ==============================
+# Node
+# ==============================
+
+node_modules/
+admin-ui/node_modules/
+frontend/admin-engine/node_modules/
+
+# ==============================
+# Upload folders (temporary)
+# ==============================
+
+uploads/
+admin-ui/uploads/
+
+# ==============================
+# Local worker / cloud tools
+# ==============================
+
 worker/
+.wrangler/
+
+# ==============================
+# Environment files
+# ==============================
+
+.env
+
+# ==============================
+# Databases
+# ==============================
+
+*.db
+
+# ==============================
+# OS files
+# ==============================
+
+.DS_Store
+Thumbs.db
+
+# ==============================
+# Local launch scripts (optional)
+# prevents path conflicts
+# ==============================
+
+Book Admin.vbs
 .wrangler/
 
 *.db

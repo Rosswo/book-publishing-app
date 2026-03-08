@@ -18,5 +18,15 @@
     "content_path": null,
     "file_path": "book-1772796339909/book.pdf",
     "original_pdf_path": null
+  },
+  {
+    "id": "book-index-1772955213853",
+    "title": "Ka hring nun",
+    "description": "Miriate Khawvel",
+    "cover_url": "./books/book-index-1772955213853/cover",
+    "content_type": "html",
+    "content_path": "book-index-1772955213853",
+    "file_path": null,
+    "original_pdf_path": null
   }
 ]

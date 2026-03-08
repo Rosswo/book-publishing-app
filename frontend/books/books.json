@@ -8,5 +8,15 @@
     "content_path": "book-index-1772955213853",
     "file_path": null,
     "original_pdf_path": null
+  },
+  {
+    "id": "book-1772980917395",
+    "title": "Ka hringnun leh Miriate",
+    "description": "khawvel",
+    "cover_url": "./books/book-1772980917395/cover",
+    "content_type": "pdf",
+    "content_path": null,
+    "file_path": "book-1772980917395/book.pdf",
+    "original_pdf_path": null
   }
 ]

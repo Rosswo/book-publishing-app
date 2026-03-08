@@ -97,12 +97,14 @@
 .app-modal {
     position: fixed;
     inset: 0;
-    background: rgba(0,0,0,0.65);
-    backdrop-filter: blur(8px);
+    background: rgba(0,0,0,0.82);
+    backdrop-filter: blur(10px);
     display: none;
     align-items: center;
     justify-content: center;
     z-index: 200;
+    padding: 16px;
+    box-sizing: border-box;
 }
 
     .app-modal.active {
@@ -110,14 +112,17 @@
     }
 
 .app-modal-content {
-    width: 90%;
-    max-width: 600px;
+    width: 94%;
+    max-width: 680px;
+    max-height: 92vh;
     background: var(--card);
     border: 1px solid var(--border-soft);
     border-radius: 24px;
-    padding: 24px;
     box-shadow: 0 40px 120px rgba(0,0,0,0.8);
     animation: modalFade 0.25s ease;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
 }
 
 @keyframes modalFade {
@@ -136,16 +141,47 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 18px;
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--border-soft);
     font-weight: 600;
     font-size: 18px;
+    flex-shrink: 0;
 }
 
 .app-modal-body {
-    max-height: 60vh;
+    flex: 1;
     overflow-y: auto;
-    line-height: 1.7;
-    opacity: 0.9;
+    -webkit-overflow-scrolling: touch;
+    padding: 24px;
+    line-height: 1.8;
+    font-size: 15px;
+}
+
+    /* PDF canvas inside modal — full width, no clipping */
+    .app-modal-body .pdf-canvas-container canvas {
+        width: 100% !important;
+        height: auto !important;
+        display: block;
+        margin-bottom: 8px;
+        border-radius: 4px;
+    }
+
+@media (max-width: 480px) {
+    .app-modal-content {
+        width: 98%;
+        border-radius: 18px;
+        max-height: 94vh;
+    }
+
+    .app-modal-header {
+        padding: 14px 18px;
+        font-size: 16px;
+    }
+
+    .app-modal-body {
+        padding: 16px;
+        font-size: 14px;
+    }
 }
 
 /* =========================

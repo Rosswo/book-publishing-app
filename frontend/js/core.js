@@ -150,9 +150,12 @@ async function renderPdfToCanvas(pdfUrl, containerId) {
         container.innerHTML = "";
 
         // Device pixel ratio: 2 on most phones, 3 on high-end — makes PDFs sharp
-        const dpr = window.devicePixelRatio || 1;
+        // Cap at 2.5 to avoid excessive memory use on high-end devices
+        const dpr = Math.min(window.devicePixelRatio || 1, 2.5);
         const cssWidth = container.clientWidth || window.innerWidth;
 
+        // FIX 4: Render pages progressively — first page appears immediately
+        // instead of waiting for all pages to render before showing anything
         for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
 
             const page = await pdf.getPage(pageNum);
@@ -178,10 +181,14 @@ async function renderPdfToCanvas(pdfUrl, containerId) {
             canvas.style.marginBottom = "8px";
             canvas.style.borderRadius = "4px";
 
+            // Append canvas to DOM before rendering so user sees pages appear one by one
             container.appendChild(canvas);
 
             const ctx = canvas.getContext("2d");
             await page.render({ canvasContext: ctx, viewport }).promise;
+
+            // Yield to browser between pages — keeps UI responsive while rendering
+            await new Promise(resolve => setTimeout(resolve, 0));
         }
 
     } catch (err) {

@@ -65,7 +65,7 @@ async function renderSetting(key, title) {
 
             openAppModal(
                 title,
-                `<div id="settingsPdfContainer" class="pdf-canvas-container" style="overflow-y:auto; max-height:80vh;">
+                `<div id="settingsPdfContainer" class="pdf-canvas-container">
                     <p style="color:var(--text-muted); padding:20px; text-align:center;">Loading PDF...</p>
                 </div>`
             );
@@ -96,11 +96,11 @@ function openAppVersion() {
 }
 
 function openCredits() {
-    renderSetting("credits", "Ziaktu thuhma");
+    renderSetting("credits", "Credits");
 }
 
 function openMemorial() {
-    renderSetting("memorial", "Hriatrengna");
+    renderSetting("memorial", "Memorial");
 }
 
 function exitApp() {

@@ -405,23 +405,27 @@ app.post(
 );
 
 /* ============================
+   Auto Sync on Startup
+   Pull BEFORE server starts so the
+   event loop is never blocked
+============================ */
+
+try {
+    console.log("Syncing with GitHub...");
+    const projectRoot = path.resolve(__dirname, "..");
+    execSync("git pull --rebase origin main", {
+        cwd: projectRoot,
+        stdio: "pipe"
+    });
+    console.log("Sync complete — local copy is up to date.");
+} catch (err) {
+    console.warn("Sync skipped (no internet or already up to date):", err.message);
+}
+
+/* ============================
    Start Server
 ============================ */
 
 const server = app.listen(PORT, () => {
     console.log(`Admin UI running at http://localhost:${PORT}`);
-
-    // AUTO SYNC: Pull latest from GitHub on every startup
-    // Keeps both admins in sync automatically — no manual git pull ever needed
-    const projectRoot = path.resolve(__dirname, "..");
-    try {
-        console.log("Syncing with GitHub...");
-        execSync("git pull --rebase origin main", {
-            cwd: projectRoot,
-            stdio: "pipe"
-        });
-        console.log("Sync complete — local copy is up to date.");
-    } catch (err) {
-        console.warn("Sync skipped (no internet or already up to date):", err.message);
-    }
 });

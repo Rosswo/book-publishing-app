@@ -381,3 +381,54 @@
         border-radius: 14px;
     }
 }
+
+
+
+
+
+/* ============================= */
+/* SONG BLOCKS                   */
+/* Triggered by Subtitle style   */
+/* in Word. Preserves all spaces */
+/* and indents exactly as typed. */
+/* ============================= */
+
+.song-block {
+    margin: 32px 0;
+}
+
+    /* Song title (from Subtitle style in Word) */
+    .song-block h2.song-title {
+        font-size: 20px;
+        font-weight: 700;
+        margin-bottom: 16px;
+        margin-top: 0;
+        letter-spacing: 0.2px;
+    }
+
+    /* Each line inside a song block:
+   white-space: pre-wrap preserves ALL spaces
+   the client types — verses, chorus indents, everything */
+    .song-block p {
+        white-space: pre-wrap;
+        font-family: Georgia, serif;
+        font-size: 16px;
+        line-height: 1.7;
+        margin: 0 0 2px 0;
+        text-align: left;
+    }
+
+        /* Empty lines between verses */
+        .song-block p:empty {
+            margin-bottom: 10px;
+        }
+
+@media (max-width: 768px) {
+    .song-block p {
+        font-size: 14.5px;
+    }
+
+    .song-block h2.song-title {
+        font-size: 18px;
+    }
+}

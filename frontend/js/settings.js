@@ -96,11 +96,11 @@ function openAppVersion() {
 }
 
 function openCredits() {
-    renderSetting("credits", "Credits");
+    renderSetting("credits", "Ziaktu thuhma");
 }
 
 function openMemorial() {
-    renderSetting("memorial", "Memorial");
+    renderSetting("memorial", "Hriatrengna");
 }
 
 function exitApp() {

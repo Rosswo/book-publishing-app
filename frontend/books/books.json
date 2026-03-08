@@ -18,5 +18,15 @@
     "content_path": "book-index-1772955876506",
     "file_path": null,
     "original_pdf_path": null
+  },
+  {
+    "id": "book-1772975038498",
+    "title": "Ka hring nun pdf",
+    "description": "Miriate Khawvel",
+    "cover_url": "./books/book-1772975038498/cover",
+    "content_type": "pdf",
+    "content_path": null,
+    "file_path": "book-1772975038498/book.pdf",
+    "original_pdf_path": null
   }
 ]

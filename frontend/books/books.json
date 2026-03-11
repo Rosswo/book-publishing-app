@@ -78,5 +78,15 @@
     "content_path": "book-index-1773217319172",
     "file_path": null,
     "original_pdf_path": null
+  },
+  {
+    "id": "book-1773228255741",
+    "title": "Thurai sangchia",
+    "description": "Maruchow lai",
+    "cover_url": "./books/book-1773228255741/cover",
+    "content_type": "pdf",
+    "content_path": null,
+    "file_path": "book-1773228255741/book.pdf",
+    "original_pdf_path": null
   }
 ]

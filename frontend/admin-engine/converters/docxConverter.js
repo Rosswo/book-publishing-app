@@ -1,25 +1,20 @@
 ﻿const mammoth = require("mammoth");
+const fs = require("fs");
+const zlib = require("zlib");
 
 async function convertDocxToHtml(filePath) {
 
-    // Pass 1: collect all paragraph raw texts (with leading spaces)
-    // via transformDocument before mammoth strips anything
-    const paraTexts = [];
+    // Step 1: Read raw DOCX (ZIP) and extract word/document.xml
+    //         using only Node.js built-ins (fs + zlib). No Python. No npm.
+    const xml = extractDocumentXml(filePath);
 
-    await mammoth.convertToHtml(
-        { path: filePath },
-        {
-            transformDocument: function (doc) {
-                collectParagraphTexts(doc, paraTexts);
-                return doc; // don't change anything yet
-            }
-        }
-    );
+    // Step 2: Parse paragraphs with a state machine to preserve leading spaces
+    const paraTexts = extractParaTexts(xml);
 
-    // Build indent map from collected texts
+    // Step 3: Build indent map (song-title / song-verse-indent / song-chorus)
     const indentMap = buildIndentMap(paraTexts);
 
-    // Pass 2: real conversion, injecting styleName via transformDocument
+    // Step 4: Run mammoth - styleMap turns injected styleNames into CSS classes
     const result = await mammoth.convertToHtml(
         { path: filePath },
         {
@@ -30,61 +25,144 @@ async function convertDocxToHtml(filePath) {
                 "p[style-name='song-verse-indent'] => p.song-verse-indent:fresh",
                 "p[style-name='song-chorus'] => p.song-chorus:fresh",
             ],
-            transformDocument: function (doc) {
-                return tagParagraphs(doc, indentMap);
-            }
+            transformDocument: (doc) => tagParagraphs(doc, indentMap)
         }
     );
 
     let html = result.value;
-
-    // Clean empty paragraphs
     html = html.replace(/<p[^>]*>\s*<\/p>/g, "");
     html = html.replace(/\n{2,}/g, "\n").trim();
-
-    // Wrap song blocks
     html = wrapSongBlocks(html);
 
     return html;
 }
 
 /* ─────────────────────────────────────────────
-   PASS 1: Collect paragraph texts
+   STEP 1: Extract word/document.xml from DOCX
 
-   Walk every paragraph in the document tree,
-   concatenate ALL text node values (preserving
-   the leading spaces that are split across
-   multiple <w:t> runs in Word).
+   DOCX is a PKZIP file. We find the central
+   directory, locate word/document.xml, read its
+   local file header, then deflate-decompress
+   the data with Node's built-in zlib.
 ───────────────────────────────────────────── */
-function collectParagraphTexts(element, out) {
-    if (!element) return;
-    if (element.type === "paragraph") {
-        const fullText = getAllText(element);
-        out.push(fullText);
-        return; // don't recurse into paragraph children again
-    }
-    if (element.children) {
-        element.children.forEach(child => collectParagraphTexts(child, out));
-    }
-}
+function extractDocumentXml(filePath) {
+    const buf = fs.readFileSync(filePath);
 
-function getAllText(element) {
-    if (element.type === "text") return element.value || "";
-    if (!element.children) return "";
-    return element.children.map(getAllText).join("");
+    // Find End of Central Directory (last PK\x05\x06)
+    let eocd = -1;
+    for (let i = buf.length - 22; i >= 0; i--) {
+        if (buf[i] === 0x50 && buf[i + 1] === 0x4b && buf[i + 2] === 0x05 && buf[i + 3] === 0x06) {
+            eocd = i; break;
+        }
+    }
+    if (eocd === -1) throw new Error("Not a valid ZIP/DOCX file");
+
+    const cdOffset = buf.readUInt32LE(eocd + 16);
+    const cdEntries = buf.readUInt16LE(eocd + 8);
+
+    // Scan central directory for "word/document.xml"
+    let pos = cdOffset;
+    for (let i = 0; i < cdEntries; i++) {
+        const sig = buf.readUInt32LE(pos);
+        if (sig !== 0x02014b50) break;
+
+        const compression = buf.readUInt16LE(pos + 10);
+        const compressedSize = buf.readUInt32LE(pos + 20);
+        const fnameLen = buf.readUInt16LE(pos + 28);
+        const extraLen = buf.readUInt16LE(pos + 30);
+        const commentLen = buf.readUInt16LE(pos + 32);
+        const localOffset = buf.readUInt32LE(pos + 42);
+        const fname = buf.toString("utf8", pos + 46, pos + 46 + fnameLen);
+
+        if (fname === "word/document.xml") {
+            // Read local file header to find data start
+            const lhFnameLen = buf.readUInt16LE(localOffset + 26);
+            const lhExtraLen = buf.readUInt16LE(localOffset + 28);
+            const dataStart = localOffset + 30 + lhFnameLen + lhExtraLen;
+            const compressed = buf.slice(dataStart, dataStart + compressedSize);
+
+            if (compression === 8) {
+                return zlib.inflateRawSync(compressed).toString("utf8");
+            } else {
+                return compressed.toString("utf8"); // stored uncompressed
+            }
+        }
+
+        pos += 46 + fnameLen + extraLen + commentLen;
+    }
+
+    throw new Error("word/document.xml not found in DOCX");
 }
 
 /* ─────────────────────────────────────────────
-   BUILD INDENT MAP
+   STEP 2: Extract paragraph texts
 
-   Space counts measured from real DOCX:
-     0  spaces = verse number line or normal prose
-     8–18 spaces = verse continuation line
-     19+ spaces = chorus line
+   State machine walks the XML character by
+   character. Handles <w:p>, <w:t>, <w:tab/>.
+   Preserves ALL leading spaces exactly as typed.
+   No regex - avoids issues with nested tags.
+───────────────────────────────────────────── */
+function extractParaTexts(xml) {
+    const paras = [];
+    let inPara = false;
+    let inText = false;
+    let curPara = "";
+    let curText = "";
 
-   Title detection: 8–18 spaces AND short (≤40 chars)
-   AND next non-empty para is a verse number line (1., 2.…)
-   AND previous non-empty para is NOT an indented line
+    let i = 0;
+    const n = xml.length;
+
+    while (i < n) {
+        if (xml[i] === "<") {
+            // Scan to end of tag
+            let j = i + 1;
+            while (j < n && xml[j] !== ">") j++;
+            const tag = xml.substring(i + 1, j);
+
+            if (tag === "w:p" || tag.startsWith("w:p ")) {
+                inPara = true;
+                inText = false;
+                curPara = "";
+            } else if (tag === "/w:p") {
+                if (inPara) paras.push(curPara);
+                inPara = false;
+                inText = false;
+            } else if (inPara && (tag === "w:t" || tag.startsWith("w:t "))) {
+                inText = true;
+                curText = "";
+            } else if (inPara && tag === "/w:t") {
+                curPara += curText;
+                inText = false;
+            } else if (inPara && (tag === "w:tab/" || tag.startsWith("w:tab "))) {
+                curPara += "\t";
+            }
+
+            i = j + 1;
+
+        } else if (inText) {
+            let j = i;
+            while (j < n && xml[j] !== "<") j++;
+            curText += xml.substring(i, j);
+            i = j;
+        } else {
+            i++;
+        }
+    }
+
+    return paras;
+}
+
+/* ─────────────────────────────────────────────
+   STEP 3: Build indent map
+
+   Thresholds from real DOCX measurement:
+     0  spaces → prose or verse number line
+     8–18 spaces → verse continuation line
+     19+ spaces → chorus line
+
+   Title = 8–18 spaces, ≤40 chars, preceded by
+   prose (prev para not indented), followed by
+   a verse number line (starts with digit + dot)
 ───────────────────────────────────────────── */
 function buildIndentMap(paraTexts) {
     const n = paraTexts.length;
@@ -102,22 +180,20 @@ function buildIndentMap(paraTexts) {
             map.set(text, "song-chorus");
 
         } else if (spaces >= 8) {
-            // Could be song-title if short + context matches
             if (text.length <= 40) {
-                // Next non-empty
+                // look forward: next non-empty must start with verse number
                 let j = i + 1;
                 while (j < n && !paraTexts[j].trim()) j++;
                 const nextText = j < n ? paraTexts[j].trim() : "";
                 const nextIsVerse = /^\d+[.)]\s*/.test(nextText);
 
-                // Prev non-empty
+                // look backward: prev non-empty must NOT be indented
                 let k = i - 1;
                 while (k >= 0 && !paraTexts[k].trim()) k--;
                 const prevFull = k >= 0 ? paraTexts[k] : "";
                 const prevSpaces = prevFull.length - prevFull.replace(/^ +/, "").length;
-                const prevIsSongLine = prevSpaces >= 8;
 
-                if (nextIsVerse && !prevIsSongLine) {
+                if (nextIsVerse && prevSpaces < 8) {
                     map.set(text, "song-title");
                     continue;
                 }
@@ -130,40 +206,37 @@ function buildIndentMap(paraTexts) {
 }
 
 /* ─────────────────────────────────────────────
-   PASS 2: Tag paragraphs
-
-   Walk document tree, find paragraphs, look up
-   their plain text in the indent map, and inject
-   a styleName so mammoth maps it to a CSS class.
+   STEP 4a: Tag paragraphs in mammoth's document
+   tree by injecting styleName based on indent map
 ───────────────────────────────────────────── */
 function tagParagraphs(element, indentMap) {
     if (!element) return element;
-
     if (element.type === "paragraph") {
-        const fullText = getAllText(element);
-        const text = fullText.trim();
+        const text = getAllText(element).trim();
         const cls = indentMap.get(text);
-        if (cls) {
-            return Object.assign({}, element, { styleName: cls });
-        }
+        if (cls) return Object.assign({}, element, { styleName: cls });
         return element;
     }
-
     if (element.children) {
         return Object.assign({}, element, {
             children: element.children.map(c => tagParagraphs(c, indentMap))
         });
     }
-
     return element;
 }
 
-/* ─────────────────────────────────────────────
-   WRAP SONG BLOCKS
+function getAllText(el) {
+    if (el.type === "text") return el.value || "";
+    if (!el.children) return "";
+    return el.children.map(getAllText).join("");
+}
 
-   Wraps detected song content in
-   <div class="song-block">.
-   Opens on song-title, closes on h1 or prose.
+/* ─────────────────────────────────────────────
+   STEP 4b: Wrap song-block div around songs
+
+   Opens on <p class="song-title">.
+   Keeps verse number lines (1., 2., 3.) inside.
+   Closes on heading or long prose paragraph.
 ───────────────────────────────────────────── */
 function wrapSongBlocks(html) {
     const tokenRe = /(<(?:h[1-6]|p)[^>]*>[\s\S]*?<\/(?:h[1-6]|p)>)/gi;
@@ -184,14 +257,12 @@ function wrapSongBlocks(html) {
             result += part + "\n";
             continue;
         }
-
         if (!inSong && isSongTitle) {
             result += '<div class="song-block">\n';
             inSong = true;
             result += part + "\n";
             continue;
         }
-
         if (inSong && !isSongLine && !isVerseNum && !isSongTitle && plainText.length > 10) {
             result += "</div>\n";
             inSong = false;

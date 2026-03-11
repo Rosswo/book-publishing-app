@@ -1,186 +1,190 @@
 ﻿const mammoth = require("mammoth");
-const { execSync } = require("child_process");
-const fs = require("fs");
-const os = require("os");
-const path = require("path");
 
-/* ─────────────────────────────────────────────
-   MAIN CONVERTER
-───────────────────────────────────────────── */
 async function convertDocxToHtml(filePath) {
 
-    // Step 1: Build indent map using stdlib Python (no pip needed)
-    const indentMap = buildIndentMap(filePath);
+    // Pass 1: collect all paragraph raw texts (with leading spaces)
+    // via transformDocument before mammoth strips anything
+    const paraTexts = [];
 
-    // Step 2: Convert to HTML with Mammoth
+    await mammoth.convertToHtml(
+        { path: filePath },
+        {
+            transformDocument: function (doc) {
+                collectParagraphTexts(doc, paraTexts);
+                return doc; // don't change anything yet
+            }
+        }
+    );
+
+    // Build indent map from collected texts
+    const indentMap = buildIndentMap(paraTexts);
+
+    // Pass 2: real conversion, injecting styleName via transformDocument
     const result = await mammoth.convertToHtml(
         { path: filePath },
         {
             styleMap: [
                 "p[style-name='Heading 1'] => h1:fresh",
                 "p[style-name='Caption'] => p.image-caption:fresh",
-            ]
+                "p[style-name='song-title'] => p.song-title:fresh",
+                "p[style-name='song-verse-indent'] => p.song-verse-indent:fresh",
+                "p[style-name='song-chorus'] => p.song-chorus:fresh",
+            ],
+            transformDocument: function (doc) {
+                return tagParagraphs(doc, indentMap);
+            }
         }
     );
 
     let html = result.value;
 
-    // Step 3: Inject indent classes based on map
-    // Matches <p> with or without existing attributes
-    html = html.replace(/<p([^>]*)>([\s\S]*?)<\/p>/gi, (match, attrs, inner) => {
-        const plainText = inner
-            .replace(/<[^>]*>/g, "")
-            .replace(/&amp;/g, "&")
-            .replace(/&lt;/g, "<")
-            .replace(/&gt;/g, ">")
-            .replace(/&nbsp;/g, " ")
-            .replace(/&#\d+;/g, " ")
-            .trim();
-        const cls = indentMap.get(plainText);
-        if (cls) {
-            // Replace or add class attribute
-            const newAttrs = attrs.replace(/\bclass="[^"]*"/, "").trim();
-            return `<p${newAttrs ? " " + newAttrs : ""} class="${cls}">${inner}</p>`;
-        }
-        return match;
-    });
-
-    // Step 4: Remove empty paragraphs
+    // Clean empty paragraphs
     html = html.replace(/<p[^>]*>\s*<\/p>/g, "");
     html = html.replace(/\n{2,}/g, "\n").trim();
 
-    // Step 5: Wrap song blocks
+    // Wrap song blocks
     html = wrapSongBlocks(html);
 
     return html;
 }
 
 /* ─────────────────────────────────────────────
-   BUILD INDENT MAP
-   Uses only Python stdlib (zipfile + xml).
-   No python-docx or pip required.
+   PASS 1: Collect paragraph texts
 
-   Space counts from actual DOCX text nodes:
-     0  spaces = verse number (1., 2., 3.) or prose
+   Walk every paragraph in the document tree,
+   concatenate ALL text node values (preserving
+   the leading spaces that are split across
+   multiple <w:t> runs in Word).
+───────────────────────────────────────────── */
+function collectParagraphTexts(element, out) {
+    if (!element) return;
+    if (element.type === "paragraph") {
+        const fullText = getAllText(element);
+        out.push(fullText);
+        return; // don't recurse into paragraph children again
+    }
+    if (element.children) {
+        element.children.forEach(child => collectParagraphTexts(child, out));
+    }
+}
+
+function getAllText(element) {
+    if (element.type === "text") return element.value || "";
+    if (!element.children) return "";
+    return element.children.map(getAllText).join("");
+}
+
+/* ─────────────────────────────────────────────
+   BUILD INDENT MAP
+
+   Space counts measured from real DOCX:
+     0  spaces = verse number line or normal prose
      8–18 spaces = verse continuation line
      19+ spaces = chorus line
-   Title = 8–18 spaces, short text (≤40 chars),
-           preceded by non-song-indent content,
-           followed by verse number line
+
+   Title detection: 8–18 spaces AND short (≤40 chars)
+   AND next non-empty para is a verse number line (1., 2.…)
+   AND previous non-empty para is NOT an indented line
 ───────────────────────────────────────────── */
-function buildIndentMap(filePath) {
-    const pythonScript = `
-import zipfile, json, sys, re
-import xml.etree.ElementTree as ET
+function buildIndentMap(paraTexts) {
+    const n = paraTexts.length;
+    const map = new Map();
 
-NS = "http://schemas.openxmlformats.org/wordprocessingml/2006/main"
+    for (let i = 0; i < n; i++) {
+        const full = paraTexts[i];
+        const stripped = full.replace(/^ +/, "");
+        const spaces = full.length - stripped.length;
+        const text = stripped.trim();
 
-def get_para_text(para_el):
-    parts = []
-    for r in para_el.findall(".//{%s}r" % NS):
-        for child in r:
-            tag = child.tag.split('}')[-1]
-            if tag == 't':
-                parts.append(child.text or "")
-            elif tag == 'tab':
-                parts.append("\\t")
-    return "".join(parts)
+        if (!text) continue;
 
-with zipfile.ZipFile(sys.argv[1]) as z:
-    xml_bytes = z.read("word/document.xml")
+        if (spaces >= 19) {
+            map.set(text, "song-chorus");
 
-tree = ET.fromstring(xml_bytes)
-body = tree.find("{%s}body" % NS)
-paras = []
-for p in body.findall("{%s}p" % NS):
-    full = get_para_text(p)
-    stripped = full.lstrip(" ")
-    spaces = len(full) - len(stripped)
-    paras.append({"text": stripped.rstrip(), "spaces": spaces})
+        } else if (spaces >= 8) {
+            // Could be song-title if short + context matches
+            if (text.length <= 40) {
+                // Next non-empty
+                let j = i + 1;
+                while (j < n && !paraTexts[j].trim()) j++;
+                const nextText = j < n ? paraTexts[j].trim() : "";
+                const nextIsVerse = /^\d+[.)]\s*/.test(nextText);
 
-n = len(paras)
-result = {}
+                // Prev non-empty
+                let k = i - 1;
+                while (k >= 0 && !paraTexts[k].trim()) k--;
+                const prevFull = k >= 0 ? paraTexts[k] : "";
+                const prevSpaces = prevFull.length - prevFull.replace(/^ +/, "").length;
+                const prevIsSongLine = prevSpaces >= 8;
 
-for i, p in enumerate(paras):
-    text = p["text"].strip()
-    spaces = p["spaces"]
-    if not text:
-        continue
-    if spaces >= 19:
-        result[text] = "song-chorus"
-    elif spaces >= 8:
-        if len(text) <= 40:
-            # Look forward: next non-empty must be a verse number line
-            j = i + 1
-            while j < n and not paras[j]["text"].strip():
-                j += 1
-            next_text = paras[j]["text"].strip() if j < n else ""
-            # Look backward: prev non-empty must NOT be a song-indent line
-            k = i - 1
-            while k >= 0 and not paras[k]["text"].strip():
-                k -= 1
-            prev_spaces = paras[k]["spaces"] if k >= 0 else 0
-            if re.match(r"^\\d+[.)]", next_text) and prev_spaces < 8:
-                result[text] = "song-title"
-                continue
-        result[text] = "song-verse-indent"
-
-print(json.dumps(result, ensure_ascii=False))
-`;
-
-    try {
-        const tmpScript = path.join(os.tmpdir(), "_docx_indent_map.py");
-        fs.writeFileSync(tmpScript, pythonScript, "utf8");
-        const output = execSync(
-            `python3 "${tmpScript}" "${filePath}"`,
-            { timeout: 20000 }
-        ).toString("utf8");
-        const obj = JSON.parse(output);
-        return new Map(Object.entries(obj));
-    } catch (err) {
-        console.warn("[docxConverter] indent map build failed:", err.message);
-        return new Map();
+                if (nextIsVerse && !prevIsSongLine) {
+                    map.set(text, "song-title");
+                    continue;
+                }
+            }
+            map.set(text, "song-verse-indent");
+        }
     }
+
+    return map;
+}
+
+/* ─────────────────────────────────────────────
+   PASS 2: Tag paragraphs
+
+   Walk document tree, find paragraphs, look up
+   their plain text in the indent map, and inject
+   a styleName so mammoth maps it to a CSS class.
+───────────────────────────────────────────── */
+function tagParagraphs(element, indentMap) {
+    if (!element) return element;
+
+    if (element.type === "paragraph") {
+        const fullText = getAllText(element);
+        const text = fullText.trim();
+        const cls = indentMap.get(text);
+        if (cls) {
+            return Object.assign({}, element, { styleName: cls });
+        }
+        return element;
+    }
+
+    if (element.children) {
+        return Object.assign({}, element, {
+            children: element.children.map(c => tagParagraphs(c, indentMap))
+        });
+    }
+
+    return element;
 }
 
 /* ─────────────────────────────────────────────
    WRAP SONG BLOCKS
 
-   Opens <div class="song-block"> when it sees
-   a paragraph with class="song-title".
-   Keeps verse number lines (1., 2., 3. …) inside.
-   Closes on h1 or long prose paragraph.
+   Wraps detected song content in
+   <div class="song-block">.
+   Opens on song-title, closes on h1 or prose.
 ───────────────────────────────────────────── */
 function wrapSongBlocks(html) {
-    // Split into block-level tokens
-    const tokenRe = /(<(?:h[1-6]|p|div)[^>]*>[\s\S]*?<\/(?:h[1-6]|p|div)>)/gi;
+    const tokenRe = /(<(?:h[1-6]|p)[^>]*>[\s\S]*?<\/(?:h[1-6]|p)>)/gi;
     const parts = html.split(tokenRe).filter(s => s.trim() !== "");
 
     let result = "";
     let inSong = false;
 
     for (const part of parts) {
-        const isH1 = /^<h[1-6]/i.test(part);
+        const isHeading = /^<h[1-6]/i.test(part);
         const isSongTitle = /class="song-title"/.test(part);
         const isSongLine = /class="song-verse-indent"|class="song-chorus"/.test(part);
-
-        const plainText = part
-            .replace(/<[^>]*>/g, "")
-            .replace(/&nbsp;/g, " ")
-            .replace(/&amp;/g, "&")
-            .trim();
-
-        // Verse number lines: 1., 2., 3. etc — keep inside block
+        const plainText = part.replace(/<[^>]*>/g, "").replace(/&nbsp;/g, " ").trim();
         const isVerseNum = /^\d+[.)]\s*/.test(plainText);
 
-        // ── Close on heading
-        if (isH1) {
+        if (isHeading) {
             if (inSong) { result += "</div>\n"; inSong = false; }
             result += part + "\n";
             continue;
         }
 
-        // ── Open on song-title
         if (!inSong && isSongTitle) {
             result += '<div class="song-block">\n';
             inSong = true;
@@ -188,7 +192,6 @@ function wrapSongBlocks(html) {
             continue;
         }
 
-        // ── Close on long prose (not a song class, not a verse number)
         if (inSong && !isSongLine && !isVerseNum && !isSongTitle && plainText.length > 10) {
             result += "</div>\n";
             inSong = false;

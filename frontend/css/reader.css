@@ -397,13 +397,14 @@
     margin: 32px 0;
 }
 
-    /* Song title (from Subtitle style in Word) */
-    .song-block h2.song-title {
-        font-size: 20px;
+    /* Song title — auto-detected short line before verse 1 */
+    .song-block p.song-title {
+        font-size: 18px;
         font-weight: 700;
-        margin-bottom: 16px;
+        margin-bottom: 12px;
         margin-top: 0;
         letter-spacing: 0.2px;
+        white-space: normal;
     }
 
     /* Each line inside a song block:
@@ -428,7 +429,7 @@
         font-size: 14.5px;
     }
 
-    .song-block h2.song-title {
-        font-size: 18px;
-    }
+        .song-block p.song-title {
+            font-size: 17px;
+        }
 }

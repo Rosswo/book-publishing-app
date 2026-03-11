@@ -382,54 +382,70 @@
     }
 }
 
-
-
-
-
 /* ============================= */
 /* SONG BLOCKS                   */
-/* Triggered by Subtitle style   */
-/* in Word. Preserves all spaces */
-/* and indents exactly as typed. */
+/* Auto-detected from 1. pattern */
 /* ============================= */
 
 .song-block {
     margin: 32px 0;
 }
 
-    /* Song title — auto-detected short line before verse 1 */
-    .song-block p.song-title {
-        font-size: 18px;
-        font-weight: 700;
-        margin-bottom: 12px;
-        margin-top: 0;
-        letter-spacing: 0.2px;
-        white-space: normal;
+/* book-content prefix gives higher specificity
+   so these override the global .book-content p rules */
+.book-content .song-block p.song-title {
+    font-size: 18px;
+    font-weight: 700;
+    margin: 0 0 14px 0;
+    letter-spacing: 0.2px;
+    line-height: 1.4;
+    text-align: left;
+    white-space: normal;
+}
+
+.book-content .song-block p {
+    font-family: Georgia, serif;
+    font-size: 16px;
+    line-height: 1.65;
+    margin: 0 0 3px 0;
+    text-align: left;
+}
+
+    /* Chorus / indented lines */
+    .book-content .song-block p.song-verse-indent {
+        margin-left: 2.2em;
+        margin-top: 6px;
+        margin-bottom: 3px;
     }
 
-    /* Each line inside a song block:
-   white-space: pre-wrap preserves ALL spaces
-   the client types — verses, chorus indents, everything */
-    .song-block p {
-        white-space: pre-wrap;
-        font-family: Georgia, serif;
-        font-size: 16px;
-        line-height: 1.7;
-        margin: 0 0 2px 0;
-        text-align: left;
+    /* Deep chorus */
+    .book-content .song-block p.song-chorus {
+        margin-left: 4em;
+        margin-top: 3px;
+        margin-bottom: 3px;
+        font-style: italic;
     }
 
-        /* Empty lines between verses */
-        .song-block p:empty {
-            margin-bottom: 10px;
-        }
+    /* Gap between numbered verses */
+    .book-content .song-block p + p[class=""],
+    .book-content .song-block p:not(.song-verse-indent):not(.song-chorus):not(.song-title) + p:not(.song-verse-indent):not(.song-chorus):not(.song-title) {
+        margin-top: 10px;
+    }
 
 @media (max-width: 768px) {
-    .song-block p {
+    .book-content .song-block p {
         font-size: 14.5px;
     }
 
-        .song-block p.song-title {
+        .book-content .song-block p.song-title {
             font-size: 17px;
+        }
+
+        .book-content .song-block p.song-verse-indent {
+            margin-left: 1.6em;
+        }
+
+        .book-content .song-block p.song-chorus {
+            margin-left: 3em;
         }
 }

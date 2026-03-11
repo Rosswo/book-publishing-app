@@ -1,13 +1,18 @@
 const mammoth = require("mammoth");
 
 async function convertDocxToHtml(filePath) {
+
     const result = await mammoth.convertToHtml(
         { path: filePath },
         {
             styleMap: [
                 "p[style-name='Heading 1'] => h1:fresh",
                 "p[style-name='Caption'] => p.image-caption:fresh",
-            ]
+                // Injected by transformDocument based on leading space count
+                "p[style-name='song-verse-indent'] => p.song-verse-indent:fresh",
+                "p[style-name='song-chorus'] => p.song-chorus:fresh",
+            ],
+            transformDocument: transformDocument
         }
     );
 
@@ -17,123 +22,127 @@ async function convertDocxToHtml(filePath) {
     html = html.replace(/<p>\s*<\/p>/g, "");
     html = html.replace(/\n{2,}/g, "\n").trim();
 
-    // Auto-detect and wrap song blocks
+    // Wrap detected song blocks
     html = wrapSongBlocks(html);
 
     return html;
 }
 
 /* ================================
-   Song Block Auto-Detection
+   Transform Document
+   Runs BEFORE Mammoth converts to HTML.
+   Reads raw text of each paragraph,
+   counts leading spaces/tabs, and
+   injects a custom styleName so
+   Mammoth maps it to the right class.
 
-   Pattern detected:
-   - A short standalone line (song title)
-   - Immediately followed by a paragraph starting with "1."
-   - Everything from that title until the next h1 or next song title
-     is wrapped in <div class="song-block">
+   Space counts from the actual DOCX:
+     0 spaces + tab  = verse number line  (e.g. "1.\tVerse text")
+     ~12 spaces      = verse continuation line
+     ~23 spaces      = chorus line
+     ~12 spaces (standalone title) = song title
+================================ */
 
-   Leading spaces and &nbsp; are preserved via CSS pre-wrap
-   so chorus indentation appears exactly as typed in Word.
+function transformDocument(element) {
 
-   Normal numbered paragraphs (e.g. "1. In the beginning...")
-   won't trigger this because they won't be preceded by a
-   short standalone title line and followed by song-structured content.
+    if (element.children) {
+        element.children = element.children.map(child => transformDocument(child));
+    }
+
+    if (element.type !== "paragraph") return element;
+
+    // Get full raw text of this paragraph
+    const rawText = getRawText(element);
+
+    // Count leading spaces
+    const leadingSpaces = rawText.length - rawText.trimStart().length;
+
+    // Verse continuation: ~12 spaces (allow 8-18 range for variation)
+    if (leadingSpaces >= 8 && leadingSpaces <= 18) {
+        return Object.assign({}, element, { styleName: "song-verse-indent" });
+    }
+
+    // Chorus: ~23 spaces (allow 19+ range)
+    if (leadingSpaces >= 19) {
+        return Object.assign({}, element, { styleName: "song-chorus" });
+    }
+
+    return element;
+}
+
+function getRawText(element) {
+    if (element.type === "run" && element.value !== undefined) {
+        return element.value;
+    }
+    if (!element.children) return "";
+    return element.children.map(getRawText).join("");
+}
+
+/* ================================
+   Song Block Wrapper
+   Detects song pattern:
+     - short standalone line (title)
+     - immediately followed by "1.\t" verse
+   Wraps them in <div class="song-block">
 ================================ */
 
 function wrapSongBlocks(html) {
-    // Split into individual tags/text chunks for processing
-    const tokenRegex = /(<[^>]+>|[^<]+)/g;
-    const tokens = html.match(tokenRegex) || [];
+    // Split HTML into paragraph/heading tokens
+    const tokenRegex = /(<(?:h1|h2|h3|p)[^>]*>[\s\S]*?<\/(?:h1|h2|h3|p)>)/gi;
+    const parts = html.split(tokenRegex).filter(s => s.trim() !== "");
 
-    // First pass: parse into paragraph objects
-    // Each paragraph: { open, content, close, raw }
-    const paragraphs = [];
-    let i = 0;
-    while (i < tokens.length) {
-        const tok = tokens[i];
-        if (/^<p[\s>]/i.test(tok)) {
-            let inner = "";
-            let close = "";
-            let j = i + 1;
-            while (j < tokens.length) {
-                if (/^<\/p>/i.test(tokens[j])) {
-                    close = tokens[j];
-                    break;
-                }
-                inner += tokens[j];
-                j++;
-            }
-            paragraphs.push({ open: tok, content: inner, close, raw: tok + inner + close, index: i });
-            i = j + 1;
-        } else if (/^<h1[\s>]/i.test(tok)) {
-            // Find closing h1
-            let inner = "";
-            let close = "";
-            let j = i + 1;
-            while (j < tokens.length) {
-                if (/^<\/h1>/i.test(tokens[j])) { close = tokens[j]; break; }
-                inner += tokens[j];
-                j++;
-            }
-            paragraphs.push({ open: tok, content: inner, close, raw: tok + inner + close, isH1: true, index: i });
-            i = j + 1;
-        } else {
-            // whitespace between tags — skip
-            i++;
-        }
-    }
-
-    // Second pass: identify song blocks
-    // A song starts when:
-    //   paragraph[n] is short (<=80 chars, no period mid-sentence feel)
-    //   AND paragraph[n+1] starts with "1." or "1 "
-    function getPlainText(content) {
-        return content.replace(/<[^>]*>/g, "").replace(/&nbsp;/g, " ").trim();
-    }
-
-    function startsWithVerseNumber(content) {
-        const text = getPlainText(content);
-        return /^1[\.\)]\s/.test(text);
-    }
-
-    function isShortTitleLine(content) {
-        const text = getPlainText(content);
-        return text.length > 0 && text.length <= 80 && !text.match(/^[0-9]+[\.\)]/);
-    }
-
-    const result = [];
+    let result = "";
     let inSong = false;
 
-    for (let n = 0; n < paragraphs.length; n++) {
-        const p = paragraphs[n];
-        const next = paragraphs[n + 1];
+    for (let i = 0; i < parts.length; i++) {
+        const part = parts[i];
+        const isH1 = /^<h1/i.test(part);
+        const isSongVerseIndent = /class="song-verse-indent"/.test(part);
+        const isSongChorus = /class="song-chorus"/.test(part);
+        const isAnySongLine = isSongVerseIndent || isSongChorus;
 
-        if (p.isH1) {
-            if (inSong) { result.push("</div>"); inSong = false; }
-            result.push(p.raw);
+        // Check if this looks like a verse number line: "1.\t..." or "1. ..."
+        const plainText = part.replace(/<[^>]*>/g, "").replace(/&[^;]+;/g, " ").trim();
+        const isVerseNumber = /^1[\.\)]\s/.test(plainText) || /^1\t/.test(plainText);
+
+        // Look ahead: if next part is song-structured
+        const nextPart = parts[i + 1] || "";
+        const nextIsVerseNumber = /^1[\.\)]\s|^1\t/.test(
+            nextPart.replace(/<[^>]*>/g, "").replace(/&[^;]+;/g, " ").trim()
+        );
+
+        if (isH1) {
+            if (inSong) { result += "</div>\n"; inSong = false; }
+            result += part + "\n";
             continue;
         }
 
-        // Detect song start: short title line + next paragraph starts with "1."
-        if (!inSong && next && !next.isH1 &&
-            isShortTitleLine(p.content) &&
-            startsWithVerseNumber(next.content)) {
-            result.push('<div class="song-block">');
-            result.push(`<p class="song-title">${p.content}</p>`);
-            inSong = true;
-            continue;
+        // Detect song start: short title line immediately before "1." verse
+        if (!inSong && !isAnySongLine && !isVerseNumber) {
+            const textLen = plainText.length;
+            if (textLen > 0 && textLen <= 80 && nextIsVerseNumber) {
+                result += '<div class="song-block">\n';
+                result += `<p class="song-title">${part.replace(/^<p[^>]*>/, "").replace(/<\/p>$/, "")}</p>\n`;
+                inSong = true;
+                continue;
+            }
         }
 
-        if (inSong) {
-            result.push(p.raw);
-        } else {
-            result.push(p.raw);
+        // Close song block when we hit normal prose (not a song line, not verse number, not empty)
+        if (inSong && !isAnySongLine && !isVerseNumber && plainText.length > 0) {
+            // Check it's not just a short blank-ish line between verses
+            if (plainText.length > 5) {
+                result += "</div>\n";
+                inSong = false;
+            }
         }
+
+        result += part + "\n";
     }
 
-    if (inSong) result.push("</div>");
+    if (inSong) result += "</div>\n";
 
-    return result.join("\n");
+    return result;
 }
 
 module.exports = convertDocxToHtml;

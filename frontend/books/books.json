@@ -108,5 +108,15 @@
     "content_path": null,
     "file_path": "book-1773231333573/book.pdf",
     "original_pdf_path": null
+  },
+  {
+    "id": "book-1773231856751",
+    "title": "Mukuang pren",
+    "description": "",
+    "cover_url": "./books/book-1773231856751/cover",
+    "content_type": "pdf",
+    "content_path": null,
+    "file_path": "book-1773231856751/book.pdf",
+    "original_pdf_path": null
   }
 ]

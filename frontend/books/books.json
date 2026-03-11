@@ -108,5 +108,15 @@
     "content_path": null,
     "file_path": "book-1773235589030/book.pdf",
     "original_pdf_path": null
+  },
+  {
+    "id": "book-index-1773241349999",
+    "title": "TEST",
+    "description": "",
+    "cover_url": "",
+    "content_type": "html",
+    "content_path": "book-index-1773241349999",
+    "file_path": null,
+    "original_pdf_path": null
   }
 ]

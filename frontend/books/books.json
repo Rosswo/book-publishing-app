@@ -68,5 +68,15 @@
     "content_path": "book-index-1773216120788",
     "file_path": null,
     "original_pdf_path": null
+  },
+  {
+    "id": "book-index-1773217319172",
+    "title": "TEST 6",
+    "description": "Hla inrem dan",
+    "cover_url": "",
+    "content_type": "html",
+    "content_path": "book-index-1773217319172",
+    "file_path": null,
+    "original_pdf_path": null
   }
 ]

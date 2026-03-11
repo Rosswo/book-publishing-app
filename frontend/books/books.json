@@ -78,5 +78,15 @@
     "content_path": null,
     "file_path": "book-1773228255741/book.pdf",
     "original_pdf_path": null
+  },
+  {
+    "id": "book-1773229113878",
+    "title": "Maruchow lai Kristian mukuang tiama",
+    "description": "Mukuang tiama kowi mang mih",
+    "cover_url": "./books/book-1773229113878/cover",
+    "content_type": "pdf",
+    "content_path": null,
+    "file_path": "book-1773229113878/book.pdf",
+    "original_pdf_path": null
   }
 ]

@@ -128,5 +128,15 @@
     "content_path": null,
     "file_path": "book-1773232474064/book.pdf",
     "original_pdf_path": null
+  },
+  {
+    "id": "book-1773233756623",
+    "title": "Ngare towkra",
+    "description": "",
+    "cover_url": "./books/book-1773233756623/cover",
+    "content_type": "pdf",
+    "content_path": null,
+    "file_path": "book-1773233756623/book.pdf",
+    "original_pdf_path": null
   }
 ]

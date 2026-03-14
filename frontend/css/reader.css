@@ -384,68 +384,43 @@
 
 /* ============================= */
 /* SONG BLOCKS                   */
-/* Auto-detected from 1. pattern */
+/* Triggered by Subtitle style   */
+/* in Word. Preserves all spaces */
+/* and indents exactly as typed. */
 /* ============================= */
 
 .song-block {
     margin: 32px 0;
 }
 
-/* book-content prefix gives higher specificity
-   so these override the global .book-content p rules */
-.book-content .song-block p.song-title {
-    font-size: 18px;
-    font-weight: 700;
-    margin: 0 0 14px 0;
-    letter-spacing: 0.2px;
-    line-height: 1.4;
-    text-align: left;
-    white-space: normal;
-}
+    /* Song title — from Subtitle style in Word → h2.song-title */
+    .song-block h2.song-title {
+        font-size: 20px;
+        font-weight: 700;
+        margin: 0 0 16px 0;
+        letter-spacing: 0.2px;
+        line-height: 1.4;
+    }
 
+/* Each line inside a song block:
+   white-space: pre-wrap preserves ALL spaces
+   the client types — verses, chorus indents, everything.
+   Overrides the global .book-content p margin/align rules. */
 .book-content .song-block p {
+    white-space: pre-wrap;
     font-family: Georgia, serif;
     font-size: 16px;
-    line-height: 1.65;
-    margin: 0 0 3px 0;
+    line-height: 1.7;
+    margin: 0 0 2px 0;
     text-align: left;
 }
 
-    /* Chorus / indented lines */
-    .book-content .song-block p.song-verse-indent {
-        margin-left: 2.2em;
-        margin-top: 6px;
-        margin-bottom: 3px;
-    }
-
-    /* Deep chorus */
-    .book-content .song-block p.song-chorus {
-        margin-left: 4em;
-        margin-top: 3px;
-        margin-bottom: 3px;
-        font-style: italic;
-    }
-
-    /* Gap between numbered verses */
-    .book-content .song-block p + p[class=""],
-    .book-content .song-block p:not(.song-verse-indent):not(.song-chorus):not(.song-title) + p:not(.song-verse-indent):not(.song-chorus):not(.song-title) {
-        margin-top: 10px;
-    }
-
 @media (max-width: 768px) {
+    .song-block h2.song-title {
+        font-size: 18px;
+    }
+
     .book-content .song-block p {
         font-size: 14.5px;
     }
-
-        .book-content .song-block p.song-title {
-            font-size: 17px;
-        }
-
-        .book-content .song-block p.song-verse-indent {
-            margin-left: 1.6em;
-        }
-
-        .book-content .song-block p.song-chorus {
-            margin-left: 3em;
-        }
 }

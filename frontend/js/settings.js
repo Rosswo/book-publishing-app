@@ -103,6 +103,10 @@ function openMemorial() {
     renderSetting("memorial", "Hriatrengna");
 }
 
+function openForward() {
+    renderSetting("forward", "Forward");
+}
+
 function exitApp() {
     if (window.AndroidBridge) {
         window.AndroidBridge.exitApp();

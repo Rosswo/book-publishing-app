@@ -34,7 +34,7 @@
     <div class="topbar" id="libraryTopbar">
         <h2 class="library-title">Book Library</h2>
         <div class="topbar-actions">
-            <a id="downloadAppBtn" href="/app.apk" download class="accent-btn small">Download App</a>
+            <a href="/app.apk" download class="accent-btn small">Download App</a>
             <button class="accent-btn small" onclick="toggleTheme()">Theme</button>
         </div>
     </div>
@@ -96,6 +96,7 @@
             <div class="options-item" onclick="openAppVersion()">App Version</div>
             <div class="options-item" onclick="openCredits()">Ziaktu thuhma</div>
             <div class="options-item" onclick="openMemorial()">Hriatrengna</div>
+            <div class="options-item" onclick="openForward()">Forward</div>
             <div class="options-item danger" onclick="exitApp()">Exit</div>
         </div>
 
@@ -134,19 +135,6 @@
                     });
             });
         }
-    </script>
-
-    <!-- FIX 6: APK Detection — hide Download button inside WebView, show in browser -->
-    <!-- Android WebView user-agent always contains "wv". Mobile browsers do NOT. -->
-    <script>
-        (function () {
-            const ua = navigator.userAgent;
-            const isWebView = /Android/.test(ua) && /wv/.test(ua);
-            const btn = document.getElementById("downloadAppBtn");
-            if (btn) {
-                btn.style.display = isWebView ? "none" : "";
-            }
-        })();
     </script>
 
 </body>

@@ -299,7 +299,7 @@ app.post(
 
         const key = req.params.key;
 
-        if (!["credits", "memorial"].includes(key)) {
+        if (!["credits", "memorial", "forward"].includes(key)) {
             return res.status(400).json({
                 error: "Invalid setting key."
             });

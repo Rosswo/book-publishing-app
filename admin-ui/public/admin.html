@@ -181,6 +181,22 @@
 
     </div>
 
+
+    <!-- ================= FORWARD ================= -->
+
+    <div class="form-container">
+
+        <h2>Upload Forward (PDF)</h2>
+
+        <form id="forwardForm" enctype="multipart/form-data">
+            <input type="file" name="pdf" accept="application/pdf" required />
+            <button type="submit">Publish Forward</button>
+        </form>
+
+        <div class="message" id="forwardMessage"></div>
+
+    </div>
+
     <!-- ================= BOOK LIST ================= -->
 
     <div class="form-container">
@@ -290,6 +306,31 @@
                 memorialMessage.textContent = result.error || "Upload failed.";
             }
 
+        });
+
+        /* ================= FORWARD ================= */
+
+        const forwardForm = document.getElementById("forwardForm");
+        const forwardMessage = document.getElementById("forwardMessage");
+
+        forwardForm.addEventListener("submit", async (e) => {
+            e.preventDefault();
+            forwardMessage.textContent = "Uploading...";
+            forwardMessage.style.color = "black";
+            const formData = new FormData(forwardForm);
+            const res = await fetch("/publish-setting/forward", {
+                method: "POST",
+                body: formData
+            });
+            const result = await res.json();
+            if (res.ok) {
+                forwardMessage.style.color = "green";
+                forwardMessage.textContent = "Forward updated successfully!";
+                forwardForm.reset();
+            } else {
+                forwardMessage.style.color = "red";
+                forwardMessage.textContent = result.error || "Upload failed.";
+            }
         });
 
         /* ================= LOAD BOOKS ================= */

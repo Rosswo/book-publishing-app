@@ -128,5 +128,15 @@
     "content_path": null,
     "file_path": "book-1773656583831/book.pdf",
     "original_pdf_path": null
+  },
+  {
+    "id": "book-1773669777857",
+    "title": "Kristian meng bowih",
+    "description": "",
+    "cover_url": "./books/book-1773669777857/cover",
+    "content_type": "pdf",
+    "content_path": null,
+    "file_path": "book-1773669777857/book.pdf",
+    "original_pdf_path": null
   }
 ]

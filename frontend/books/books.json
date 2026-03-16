@@ -108,15 +108,5 @@
     "content_path": null,
     "file_path": "book-1773315352482/book.pdf",
     "original_pdf_path": null
-  },
-  {
-    "id": "book-1773489184949",
-    "title": "Maruchow a aw bowih",
-    "description": "",
-    "cover_url": "./books/book-1773489184949/cover",
-    "content_type": "pdf",
-    "content_path": null,
-    "file_path": "book-1773489184949/book.pdf",
-    "original_pdf_path": null
   }
 ]

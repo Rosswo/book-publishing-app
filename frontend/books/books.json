@@ -128,15 +128,5 @@
     "content_path": null,
     "file_path": "book-1774240295549/book.pdf",
     "original_pdf_path": null
-  },
-  {
-    "id": "book-1774487258671",
-    "title": "Lushai a aw zirtan bu",
-    "description": "",
-    "cover_url": "./books/book-1774487258671/cover",
-    "content_type": "pdf",
-    "content_path": null,
-    "file_path": "book-1774487258671/book.pdf",
-    "original_pdf_path": null
   }
 ]

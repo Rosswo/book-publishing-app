@@ -148,5 +148,15 @@
     "content_path": null,
     "file_path": "book-1780363009822/book.pdf",
     "original_pdf_path": null
+  },
+  {
+    "id": "book-1787291379253",
+    "title": "Lümla hawm",
+    "description": "",
+    "cover_url": "./books/book-1787291379253/cover",
+    "content_type": "pdf",
+    "content_path": null,
+    "file_path": "book-1787291379253/book.pdf",
+    "original_pdf_path": null
   }
 ]

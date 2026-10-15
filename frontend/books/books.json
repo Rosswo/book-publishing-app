@@ -138,5 +138,15 @@
     "content_path": null,
     "file_path": "book-1788192736464/book.pdf",
     "original_pdf_path": null
+  },
+  {
+    "id": "book-1792071872295",
+    "title": "Ngaretowkra hai maihsingkan",
+    "description": "Maruchow lai",
+    "cover_url": "./books/book-1792071872295/cover",
+    "content_type": "pdf",
+    "content_path": null,
+    "file_path": "book-1792071872295/book.pdf",
+    "original_pdf_path": null
   }
 ]
